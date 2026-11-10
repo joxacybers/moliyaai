@@ -1,0 +1,208 @@
+<resources>
+    <!-- Navigation -->
+    <string name="nav_home">Asosiy</string>
+    <string name="nav_history">Tarix</string>
+    <string name="nav_stats">Statistika</string>
+    <string name="nav_advisor">AI maslahat</string>
+
+    <!-- Common -->
+    <string name="action_add">Qoʻshish</string>
+    <string name="action_save">Saqlash</string>
+    <string name="action_cancel">Bekor qilish</string>
+    <string name="action_delete">Oʻchirish</string>
+    <string name="action_back">Orqaga</string>
+    <string name="action_ok">OK</string>
+    <string name="action_settings">Sozlamalar</string>
+    <string name="money_format">%1$s soʻm</string>
+    <string name="currency_suffix">soʻm</string>
+    <string name="income">Kirim</string>
+    <string name="expense">Chiqim</string>
+    <string name="net">Sof natija</string>
+    <string name="all">Hammasi</string>
+    <string name="period_weekly">Haftalik</string>
+    <string name="period_monthly">Oylik</string>
+    <string name="this_week">Bu hafta</string>
+    <string name="this_month">Bu oy</string>
+    <string name="today">Bugun</string>
+    <string name="yesterday">Kecha</string>
+    <string name="custom_date">Boshqa sana</string>
+    <string name="period_all">Barchasi</string>
+    <string name="period_month_short">Oy</string>
+    <string name="period_week_short">Hafta</string>
+
+    <!-- Dashboard -->
+    <string name="total_balance">Umumiy balans</string>
+    <string name="monthly_budget_progress">Byudjet: %2$s dan %1$s</string>
+    <string name="budget_exceeded">Oylik byudjetdan oshib ketdi!</string>
+    <string name="ai_card_title">AI maslahatchi</string>
+    <string name="ai_card_subtitle">Prognoz va shaxsiy tavsiyalarni koʻring</string>
+    <string name="top_expenses_month">Bu oydagi asosiy xarajatlar</string>
+    <string name="recent_transactions">Soʻnggi amallar</string>
+    <string name="see_all">Hammasi</string>
+    <string name="empty_transactions">Hali amallar yoʻq. Birinchi kirim yoki chiqimni qoʻshish uchun + tugmasini bosing.</string>
+
+    <!-- History -->
+    <string name="no_results">Bu filtr boʻyicha hech narsa topilmadi.</string>
+
+    <!-- Statistics -->
+    <string name="chart_title">Kirim va chiqim dinamikasi</string>
+    <string name="current_period">Joriy davr</string>
+    <string name="previous_period">Oldingi davr</string>
+    <string name="expense_change">Chiqim oldingi davrga nisbatan: %1$s</string>
+    <string name="average_expense">Davr boʻyicha oʻrtacha chiqim</string>
+    <string name="category_breakdown">Kategoriyalar boʻyicha chiqim (joriy davr)</string>
+    <string name="no_expenses_period">Bu davrda chiqim yoʻq.</string>
+
+    <!-- AI advisor -->
+    <string name="forecast_next_week">Keyingi hafta prognozi</string>
+    <string name="forecast_next_month">Keyingi oy prognozi</string>
+    <string name="expected_income">Kutilayotgan kirim</string>
+    <string name="expected_expense">Kutilayotgan chiqim</string>
+    <string name="expected_net">Kutilayotgan sof natija</string>
+    <string name="trend_income">Kirim trendi: har davrda %1$s</string>
+    <string name="trend_expense">Chiqim trendi: har davrda %1$s</string>
+    <string name="confidence_label">Ishonchlilik: %1$s</string>
+    <string name="confidence_low">past</string>
+    <string name="confidence_medium">oʻrtacha</string>
+    <string name="confidence_high">yuqori</string>
+    <string name="based_on_periods">%1$d ta davr asosida</string>
+    <string name="current_pace_week">Hozirgi surʼatda bu hafta %1$s sarflaysiz</string>
+    <string name="current_pace_month">Hozirgi surʼatda bu oy %1$s sarflaysiz</string>
+    <string name="forecast_by_category">Kategoriyalar boʻyicha kutilayotgan chiqim</string>
+    <string name="not_enough_data_week">Prognoz uchun kamida %1$d ta toʻliq hafta maʼlumoti kerak.</string>
+    <string name="not_enough_data_month">Prognoz uchun kamida %1$d ta toʻliq oy maʼlumoti kerak.</string>
+    <string name="ai_section_title">AI tavsiyalari</string>
+    <string name="ai_get_advice">AI tavsiya olish</string>
+    <string name="ai_refresh">Yangilash</string>
+    <string name="ai_loading">AI moliyangizni tahlil qilmoqda…</string>
+    <string name="ai_summary">Xulosa</string>
+    <string name="ai_risks">Xavflar</string>
+    <string name="ai_recommendations">Tavsiyalar</string>
+    <string name="ai_savings">Taxminiy tejash: oyiga %1$s</string>
+    <string name="ai_updated_at">Yangilangan: %1$s</string>
+    <string name="ai_empty_hint">Maʼlumotlaringiz asosida shaxsiy tavsiya olish uchun tugmani bosing. Faqat umumiy summalar yuboriladi, izohlaringiz emas.</string>
+    <string name="ai_not_configured">AI hali sozlanmagan. Firebase loyihangizdan google-services.json faylini qoʻshib, ilovani qayta yigʻing.</string>
+    <string name="ai_error">AI bilan bogʻlanib boʻlmadi. Internetni tekshirib, qayta urinib koʻring.</string>
+    <string name="ai_disclaimer">Tavsiyalar faqat maʼlumot uchun va professional moliyaviy maslahat oʻrnini bosmaydi.</string>
+    <string name="ai_no_data">Avval bir nechta amal qoʻshing.</string>
+    <string name="ai_language_name" translatable="false">Uzbek (Latin script)</string>
+
+    <!-- Add / edit -->
+    <string name="add_transaction">Yangi amal</string>
+    <string name="edit_transaction">Amalni tahrirlash</string>
+    <string name="amount">Summa</string>
+    <string name="amount_error">Noldan katta summa kiriting</string>
+    <string name="account">Hisob</string>
+    <string name="account_card">Karta</string>
+    <string name="account_cash">Naqd</string>
+    <string name="account_debt">Qarz</string>
+    <string name="account_error">Hisobni tanlang</string>
+    <string name="category">Kategoriya</string>
+    <string name="date">Sana</string>
+    <string name="note_optional">Izoh (ixtiyoriy)</string>
+    <string name="delete_confirm_title">Bu amal oʻchirilsinmi?</string>
+    <string name="delete_confirm_text">Buni ortga qaytarib boʻlmaydi.</string>
+
+    <!-- Settings -->
+    <string name="language">Til</string>
+    <string name="language_system">Tizim tili</string>
+    <string name="budget_title">Oylik byudjet limiti</string>
+    <string name="budget_hint">0 — limitsiz</string>
+    <string name="data_backup">Maʼlumotlar va zaxira</string>
+    <string name="backup_export">Zaxira nusxa yaratish (JSON)</string>
+    <string name="backup_restore">Zaxiradan tiklash</string>
+    <string name="export_csv">CSV ga eksport (Excel)</string>
+    <string name="backup_note">Maʼlumotlar faqat shu telefonda saqlanadi. Zaxira nusxani xavfsiz joyda saqlang (Google Drive, Telegram “Saved messages” va h.k.).</string>
+    <string name="restore_confirm_title">Zaxiradan tiklansinmi?</string>
+    <string name="restore_confirm_text">Joriy barcha amallar zaxiradagi maʼlumotlar bilan almashtiriladi.</string>
+    <string name="restore_action">Tiklash</string>
+    <string name="clear_data">Barcha maʼlumotlarni oʻchirish</string>
+    <string name="clear_confirm_title">Barcha maʼlumotlar oʻchirilsinmi?</string>
+    <string name="clear_confirm_text">Barcha amallar butunlay oʻchiriladi. Avval zaxira nusxa olishni tavsiya qilamiz.</string>
+    <string name="demo_data">Demo maʼlumot yuklash (6 oy)</string>
+    <string name="ai_status">AI holati</string>
+    <string name="ai_status_ready">Ulangan (OpenAI GPT-6 Luna · Oylik AI tahlilchi)</string>
+    <string name="ai_status_missing">OpenAI API kaliti kiritilmagan</string>
+    <string name="developer_section">Dasturchi uchun</string>
+    <string name="msg_backup_saved">Zaxira saqlandi: %1$d ta amal</string>
+    <string name="msg_restore_done">%1$d ta amal tiklandi</string>
+    <string name="msg_csv_saved">CSV saqlandi: %1$d ta qator</string>
+    <string name="msg_failed">Amal bajarilmadi. Faylni tekshirib, qayta urinib koʻring.</string>
+    <string name="msg_demo_loaded">Demo maʼlumot yuklandi</string>
+    <string name="msg_data_cleared">Barcha maʼlumotlar oʻchirildi</string>
+    <string name="msg_budget_saved">Byudjet saqlandi</string>
+    <string name="msg_pin_saved">PIN-kod oʻrnatildi</string>
+    <string name="msg_pin_removed">PIN-kod oʻchirildi</string>
+    <string name="check_for_updates">Yangilanishlarni tekshirish (GitHub)</string>
+    <string name="checking_updates">Yangilanishlar tekshirilmoqda…</string>
+    <string name="up_to_date">Sizda eng soʻnggi versiya oʻrnatilgan (%1$s)</string>
+    <string name="update_check_failed">Yangilanishlarni tekshirib boʻlmadi (%1$s)</string>
+
+    <!-- Subscriptions -->
+    <string name="nav_subscriptions">Obunalar</string>
+    <string name="sub_monthly_total">Oylik obunalar xarajati</string>
+    <string name="sub_yearly_total">Yillik jami</string>
+    <string name="sub_empty">Hali obunalar yoʻq. Yandex Music, Spotify, Netflix kabilarni kuzatish uchun + tugmasini bosing.</string>
+    <string name="sub_days_left">%1$d kunda</string>
+    <string name="sub_paid_this_month">Toʻlangan</string>
+    <string name="sub_pay_now">Toʻlash</string>
+    <string name="sub_add_title">Obuna qoʻshish</string>
+    <string name="sub_popular_services">Mashhur xizmatlar (ustiga bosing)</string>
+    <string name="sub_service_name">Xizmat nomi</string>
+    <string name="sub_billing_day">Toʻlov kuni (1-31)</string>
+    <string name="sub_original_price">Tarif narxi</string>
+    <string name="sub_yearly">Yillik</string>
+    <string name="sub_next_payment">Keyingi toʻlov sanasi</string>
+
+    <!-- Transaction Details -->
+    <string name="detail_type">Amal turi</string>
+    <string name="detail_created_at">Kiritilgan vaqti</string>
+    <string name="detail_note">Izoh / Tavsif</string>
+    <string name="detail_no_note">Izoh yozilmagan</string>
+    <string name="detail_delete_hint">Agar xato ketgan boʻlsa, ushbu amalni oʻchirib qaytadan kiritishingiz mumkin.</string>
+
+    <!-- Splash & PIN Lock -->
+    <string name="splash_subtitle">Shaxsiy moliya va AI prognoz tizimi</string>
+    <string name="pin_enter_title">PIN-kodni kiriting</string>
+    <string name="pin_enter_subtitle">Ilovaga kirish uchun 4 xonali maxfiy kodni tering</string>
+    <string name="pin_wrong_error">PIN-kod notoʻgʻri! Qaytadan urinib koʻring.</string>
+    <string name="security_section">Xavfsizlik</string>
+    <string name="pin_lock_title">Ilova paroli (PIN-kod)</string>
+    <string name="pin_status_enabled">Ilovaga kirish 4 xonali PIN-kod bilan himoyalangan</string>
+    <string name="pin_status_disabled">Oʻchiq (ilovaga parolsiz kiriladi)</string>
+    <string name="pin_set_action">Parol oʻrnatish</string>
+    <string name="pin_change_action">Parolni oʻzgartirish</string>
+    <string name="pin_disable_action">Parolni oʻchirish</string>
+    <string name="pin_dialog_hint">Ilovaga kirishda soʻraladigan 4 xonali PIN-kodni kiriting:</string>
+
+    <!-- Appearance -->
+    <string name="appearance_section">Koʻrinish va Til</string>
+    <string name="theme_title">Ilova mavzusi (Tema)</string>
+    <string name="theme_system">Tizim</string>
+    <string name="theme_light">Kunduzgi</string>
+    <string name="theme_dark">Tungi</string>
+
+    <!-- AI Monthly & Daily Quota -->
+    <string name="ai_monthly_auto_title">Oylik avtomatik AI tahlil</string>
+    <string name="ai_monthly_auto_desc">Oy tugaganda GPT-6 Luna avtomatik barcha harakatlarni koʻrib chiqib xulosa va maslahat beradi. Shuningdek, kuniga 1 marta sinab koʻrish limiti mavjud.</string>
+    <string name="ai_refresh_daily">Tekshirish (kuniga 1x)</string>
+    <string name="ai_daily_limit_used">Bugungi limit tugadi (1/1)</string>
+    <string name="ai_daily_limit_message">Bugungi 1 martalik AI tekshirish limitidan foydalandingiz. Ertaga yana ishlatishingiz mumkin yoki oy yakunida avtomatik hisobot chiqadi.</string>
+
+    <!-- Categories -->
+    <string name="cat_salary">Maosh</string>
+    <string name="cat_freelance">Frilans</string>
+    <string name="cat_business">Biznes</string>
+    <string name="cat_gift">Sovgʻa</string>
+    <string name="cat_other_income">Boshqa kirim</string>
+    <string name="cat_food">Oziq-ovqat</string>
+    <string name="cat_transport">Transport</string>
+    <string name="cat_utilities">Kommunal</string>
+    <string name="cat_rent">Ijara</string>
+    <string name="cat_health">Sogʻliq</string>
+    <string name="cat_education">Taʼlim</string>
+    <string name="cat_entertainment">Koʻngilochar</string>
+    <string name="cat_shopping">Xaridlar</string>
+    <string name="cat_loans">Kredit va qarzlar</string>
+    <string name="cat_other_expense">Boshqa chiqim</string>
+</resources>

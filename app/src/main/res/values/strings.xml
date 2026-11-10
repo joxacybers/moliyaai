@@ -1,0 +1,212 @@
+<resources>
+    <string name="app_name" translatable="false">Moliya AI</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_history">History</string>
+    <string name="nav_stats">Statistics</string>
+    <string name="nav_advisor">AI advisor</string>
+
+    <!-- Common -->
+    <string name="action_add">Add</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_back">Back</string>
+    <string name="action_ok">OK</string>
+    <string name="action_settings">Settings</string>
+    <string name="money_format">%1$s UZS</string>
+    <string name="currency_suffix">UZS</string>
+    <string name="income">Income</string>
+    <string name="expense">Expense</string>
+    <string name="net">Net</string>
+    <string name="all">All</string>
+    <string name="period_weekly">Weekly</string>
+    <string name="period_monthly">Monthly</string>
+    <string name="this_week">This week</string>
+    <string name="this_month">This month</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="custom_date">Other date</string>
+    <string name="period_all">All</string>
+    <string name="period_month_short">Month</string>
+    <string name="period_week_short">Week</string>
+
+    <!-- Dashboard -->
+    <string name="total_balance">Total balance</string>
+    <string name="monthly_budget_progress">Budget: %1$s of %2$s</string>
+    <string name="budget_exceeded">Monthly budget exceeded!</string>
+    <string name="ai_card_title">AI advisor</string>
+    <string name="ai_card_subtitle">See your forecast and personal recommendations</string>
+    <string name="top_expenses_month">Top expenses this month</string>
+    <string name="recent_transactions">Recent transactions</string>
+    <string name="see_all">See all</string>
+    <string name="empty_transactions">No transactions yet. Tap + to add your first income or expense.</string>
+
+    <!-- History -->
+    <string name="no_results">Nothing found for this filter.</string>
+
+    <!-- Statistics -->
+    <string name="chart_title">Income vs expenses</string>
+    <string name="current_period">Current period</string>
+    <string name="previous_period">Previous period</string>
+    <string name="expense_change">Expenses vs previous period: %1$s</string>
+    <string name="average_expense">Average expense per period</string>
+    <string name="category_breakdown">Expenses by category (current period)</string>
+    <string name="no_expenses_period">No expenses in this period.</string>
+
+    <!-- AI advisor -->
+    <string name="forecast_next_week">Next week forecast</string>
+    <string name="forecast_next_month">Next month forecast</string>
+    <string name="expected_income">Expected income</string>
+    <string name="expected_expense">Expected expense</string>
+    <string name="expected_net">Expected net</string>
+    <string name="trend_income">Income trend: %1$s per period</string>
+    <string name="trend_expense">Expense trend: %1$s per period</string>
+    <string name="confidence_label">Confidence: %1$s</string>
+    <string name="confidence_low">low</string>
+    <string name="confidence_medium">medium</string>
+    <string name="confidence_high">high</string>
+    <string name="based_on_periods">Based on %1$d periods</string>
+    <string name="current_pace_week">At the current pace you will spend %1$s this week</string>
+    <string name="current_pace_month">At the current pace you will spend %1$s this month</string>
+    <string name="forecast_by_category">Expected expenses by category</string>
+    <string name="not_enough_data_week">At least %1$d full weeks of data are needed for a forecast.</string>
+    <string name="not_enough_data_month">At least %1$d full months of data are needed for a forecast.</string>
+    <string name="ai_section_title">AI recommendations</string>
+    <string name="ai_get_advice">Get AI advice</string>
+    <string name="ai_refresh">Refresh</string>
+    <string name="ai_loading">AI is analyzing your finances…</string>
+    <string name="ai_summary">Summary</string>
+    <string name="ai_risks">Risks</string>
+    <string name="ai_recommendations">Recommendations</string>
+    <string name="ai_savings">Possible savings: %1$s / month</string>
+    <string name="ai_updated_at">Updated: %1$s</string>
+    <string name="ai_empty_hint">Tap the button to get personal recommendations based on your data. Only totals are sent — never your notes.</string>
+    <string name="ai_not_configured">AI is not configured yet. Add google-services.json from your Firebase project and rebuild the app.</string>
+    <string name="ai_error">Could not reach the AI. Check your internet connection and try again.</string>
+    <string name="ai_disclaimer">Recommendations are for information only and are not professional financial advice.</string>
+    <string name="ai_no_data">Add some transactions first.</string>
+    <string name="ai_language_name" translatable="false">English</string>
+
+    <!-- Add / edit -->
+    <string name="add_transaction">New transaction</string>
+    <string name="edit_transaction">Edit transaction</string>
+    <string name="amount">Amount</string>
+    <string name="amount_error">Enter an amount greater than zero</string>
+    <string name="account">Account</string>
+    <string name="account_card">Card</string>
+    <string name="account_cash">Cash</string>
+    <string name="account_debt">Debt</string>
+    <string name="account_error">Please select an account</string>
+    <string name="category">Category</string>
+    <string name="date">Date</string>
+    <string name="note_optional">Note (optional)</string>
+    <string name="delete_confirm_title">Delete this transaction?</string>
+    <string name="delete_confirm_text">This cannot be undone.</string>
+
+    <!-- Settings -->
+    <string name="language">Language</string>
+    <string name="language_system">System default</string>
+    <string name="language_uzbek" translatable="false">Oʻzbekcha</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="budget_title">Monthly budget limit</string>
+    <string name="budget_hint">0 means no limit</string>
+    <string name="data_backup">Data &amp; backup</string>
+    <string name="backup_export">Create backup (JSON)</string>
+    <string name="backup_restore">Restore from backup</string>
+    <string name="export_csv">Export to CSV (Excel)</string>
+    <string name="backup_note">Data is stored only on this phone. Keep backups in a safe place (Google Drive, Telegram “Saved messages”, etc.).</string>
+    <string name="restore_confirm_title">Restore backup?</string>
+    <string name="restore_confirm_text">All current transactions will be replaced with the backup content.</string>
+    <string name="restore_action">Restore</string>
+    <string name="clear_data">Delete all data</string>
+    <string name="clear_confirm_title">Delete all data?</string>
+    <string name="clear_confirm_text">All transactions will be permanently deleted. Consider making a backup first.</string>
+    <string name="demo_data">Load demo data (6 months)</string>
+    <string name="ai_status">AI status</string>
+    <string name="ai_status_ready">Connected (OpenAI GPT-6 Luna · Monthly AI Engine)</string>
+    <string name="ai_status_missing">OpenAI API key is not configured</string>
+    <string name="developer_section">Developer</string>
+    <string name="msg_backup_saved">Backup saved: %1$d transactions</string>
+    <string name="msg_restore_done">Restored %1$d transactions</string>
+    <string name="msg_csv_saved">CSV saved: %1$d rows</string>
+    <string name="msg_failed">Operation failed. Check the file and try again.</string>
+    <string name="msg_demo_loaded">Demo data loaded</string>
+    <string name="msg_data_cleared">All data deleted</string>
+    <string name="msg_budget_saved">Budget saved</string>
+    <string name="msg_pin_saved">PIN code saved</string>
+    <string name="msg_pin_removed">PIN lock disabled</string>
+    <string name="check_for_updates">Check for updates (GitHub)</string>
+    <string name="checking_updates">Checking for updates…</string>
+    <string name="up_to_date">You have the latest version installed (%1$s)</string>
+    <string name="update_check_failed">Could not check for updates (%1$s)</string>
+
+    <!-- Subscriptions -->
+    <string name="nav_subscriptions">Subs</string>
+    <string name="sub_monthly_total">Monthly subscriptions</string>
+    <string name="sub_yearly_total">Yearly total</string>
+    <string name="sub_empty">No subscriptions yet. Tap + to track Yandex Music, Spotify, Netflix, etc.</string>
+    <string name="sub_days_left">in %1$d days</string>
+    <string name="sub_paid_this_month">Paid</string>
+    <string name="sub_pay_now">Pay now</string>
+    <string name="sub_add_title">Add subscription</string>
+    <string name="sub_popular_services">Popular services (tap to fill)</string>
+    <string name="sub_service_name">Service name</string>
+    <string name="sub_billing_day">Day (1-31)</string>
+    <string name="sub_original_price">Original tariff</string>
+    <string name="sub_yearly">Yearly</string>
+    <string name="sub_next_payment">Next payment date</string>
+
+    <!-- Transaction Details -->
+    <string name="detail_type">Transaction type</string>
+    <string name="detail_created_at">Recorded time</string>
+    <string name="detail_note">Note / Comment</string>
+    <string name="detail_no_note">No note added</string>
+    <string name="detail_delete_hint">If a mistake was made, delete this transaction and add a new one.</string>
+
+    <!-- Splash & PIN Lock -->
+    <string name="splash_subtitle">Smart Personal Finance &amp; AI Forecast</string>
+    <string name="pin_enter_title">Enter PIN Code</string>
+    <string name="pin_enter_subtitle">Enter your 4-digit security PIN to unlock</string>
+    <string name="pin_wrong_error">Incorrect PIN. Please try again.</string>
+    <string name="security_section">Security</string>
+    <string name="pin_lock_title">App PIN Lock</string>
+    <string name="pin_status_enabled">Protected with 4-digit PIN on startup</string>
+    <string name="pin_status_disabled">Disabled (anyone can open the app)</string>
+    <string name="pin_set_action">Set PIN</string>
+    <string name="pin_change_action">Change PIN</string>
+    <string name="pin_disable_action">Turn off PIN</string>
+    <string name="pin_dialog_hint">Enter a 4-digit PIN code required when opening the app:</string>
+
+    <!-- Appearance -->
+    <string name="appearance_section">Appearance &amp; Language</string>
+    <string name="theme_title">App Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
+    <!-- AI Monthly & Daily Quota -->
+    <string name="ai_monthly_auto_title">Monthly Automatic AI Analysis</string>
+    <string name="ai_monthly_auto_desc">At the end of each month, GPT-6 Luna automatically reviews all your monthly transactions and gives a summary and advice. You also get 1 manual test per day.</string>
+    <string name="ai_refresh_daily">Test (1/day)</string>
+    <string name="ai_daily_limit_used">Daily limit used (1/1)</string>
+    <string name="ai_daily_limit_message">You have already used your 1 manual AI test for today. Come back tomorrow or wait for the automatic end-of-month report.</string>
+
+    <!-- Categories -->
+    <string name="cat_salary">Salary</string>
+    <string name="cat_freelance">Freelance</string>
+    <string name="cat_business">Business</string>
+    <string name="cat_gift">Gift</string>
+    <string name="cat_other_income">Other income</string>
+    <string name="cat_food">Food</string>
+    <string name="cat_transport">Transport</string>
+    <string name="cat_utilities">Utilities</string>
+    <string name="cat_rent">Rent</string>
+    <string name="cat_health">Health</string>
+    <string name="cat_education">Education</string>
+    <string name="cat_entertainment">Entertainment</string>
+    <string name="cat_shopping">Shopping</string>
+    <string name="cat_loans">Loans &amp; credit</string>
+    <string name="cat_other_expense">Other expense</string>
+</resources>

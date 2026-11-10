@@ -1,0 +1,66 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Publish Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Extract Version Name
+        id: version
+        run: |
+          VERSION_NAME=$(grep "versionName =" app/build.gradle.kts | head -n1 | cut -d'"' -f2)
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "tag_name=v$VERSION_NAME" >> $GITHUB_OUTPUT
+
+      - name: Build APK with Gradle
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Prepare APK Asset
+        run: |
+          mkdir -p release-artifacts
+          cp app/build/outputs/apk/debug/app-debug.apk release-artifacts/moliya-ai-v${{ env.VERSION_NAME }}.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION_NAME }}
+          name: "Moliya AI v${{ env.VERSION_NAME }}"
+          body: |
+            ## Moliya AI Yangilanishi (v${{ env.VERSION_NAME }})
+            
+            Ushbu yangilanish avtomatik GitHub Actions orqali yig'ildi va chiqarildi.
+            
+            - Avtomatik yangilanish tizimi qo'llab-quvvatlanadi.
+            - Barqarorlik va yangi funksiyalar qo'shildi.
+          draft: false
+          prerelease: false
+          files: release-artifacts/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
