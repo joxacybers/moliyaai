@@ -52,13 +52,14 @@ jobs:
         with:
           tag_name: v${{ env.VERSION_NAME }}
           name: "Moliya AI v${{ env.VERSION_NAME }}"
+          make_latest: true
           body: |
             ## Moliya AI Yangilanishi (v${{ env.VERSION_NAME }})
             
-            Ushbu yangilanish avtomatik GitHub Actions orqali yig'ildi va chiqarildi.
+            Ushbu versiya avtomatik GitHub Actions orqali chiqarildi.
             
-            - Avtomatik yangilanish tizimi qo'llab-quvvatlanadi.
-            - Barqarorlik va yangi funksiyalar qo'shildi.
+            - Ekranlararo o'tish animatsiyalari sezilarli darajada yaxshilandi.
+            - Ilova ichidan avtomatik yangilash (OTA) qo'llab-quvvatlanadi.
           draft: false
           prerelease: false
           files: release-artifacts/*.apk

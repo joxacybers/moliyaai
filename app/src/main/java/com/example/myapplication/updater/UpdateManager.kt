@@ -50,8 +50,14 @@ class UpdateManager(
                 setRequestProperty("User-Agent", "MoliyaAI-App")
             }
 
-            if (conn.responseCode != 200) {
-                return@withContext UpdateCheckResult.Error("HTTP ${conn.responseCode}")
+            if (conn.responseCode == 404) {
+                return@withContext UpdateCheckResult.Error(
+                    "Reliz topilmadi (404). Repozitoriyni GitHub'da 'Public' qiling yoki Releases bo'limida APK mavjudligini tekshiring.",
+                )
+            } else if (conn.responseCode == 403) {
+                return@withContext UpdateCheckResult.Error("GitHub API limiti tugadi (403). Birozdan keyin urinib koʻring.")
+            } else if (conn.responseCode != 200) {
+                return@withContext UpdateCheckResult.Error("GitHub server xatosi (HTTP ${conn.responseCode})")
             }
 
             val body = conn.inputStream.bufferedReader().use { it.readText() }
@@ -79,7 +85,7 @@ class UpdateManager(
             }
 
             if (apkUrl.isNullOrEmpty()) {
-                return@withContext UpdateCheckResult.Error("No APK asset found in release")
+                return@withContext UpdateCheckResult.Error("GitHub relizida APK fayl topilmadi")
             }
 
             val remoteVersion = tagName.removePrefix("v").trim()

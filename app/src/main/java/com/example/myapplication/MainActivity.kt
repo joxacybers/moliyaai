@@ -5,6 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -214,6 +221,45 @@ fun MainApp() {
         NavDisplay(
             entries = navigator.toDecoratedEntries(entryProvider),
             onBack = { navigator.pop() },
+            transitionSpec = {
+                (slideInHorizontally(
+                    initialOffsetX = { (it * 0.22f).toInt() },
+                    animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+                ) + fadeIn(
+                    animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+                )) togetherWith (slideOutHorizontally(
+                    targetOffsetX = { (-it * 0.15f).toInt() },
+                    animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+                ) + fadeOut(
+                    animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+                ))
+            },
+            popTransitionSpec = {
+                (slideInHorizontally(
+                    initialOffsetX = { (-it * 0.15f).toInt() },
+                    animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+                ) + fadeIn(
+                    animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+                )) togetherWith (slideOutHorizontally(
+                    targetOffsetX = { (it * 0.22f).toInt() },
+                    animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+                ) + fadeOut(
+                    animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+                ))
+            },
+            predictivePopTransitionSpec = {
+                (slideInHorizontally(
+                    initialOffsetX = { (-it * 0.15f).toInt() },
+                    animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+                ) + fadeIn(
+                    animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+                )) togetherWith (slideOutHorizontally(
+                    targetOffsetX = { (it * 0.22f).toInt() },
+                    animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+                ) + fadeOut(
+                    animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+                ))
+            },
             modifier = Modifier
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding),
