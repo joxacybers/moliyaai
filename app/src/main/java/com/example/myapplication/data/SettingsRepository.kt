@@ -1,6 +1,7 @@
 package com.example.myapplication.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -35,6 +36,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPinCode(pin: String) {
         context.dataStore.edit { it[KEY_PIN_CODE] = pin }
+    }
+
+    /** Whether biometric (fingerprint/face unlock) is enabled. */
+    val biometricEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_BIOMETRIC_ENABLED] ?: true }
+
+    suspend fun setBiometricEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_BIOMETRIC_ENABLED] = enabled }
     }
 
     /** Theme mode (SYSTEM, LIGHT, DARK). */
@@ -93,6 +101,7 @@ class SettingsRepository(private val context: Context) {
     private companion object {
         val KEY_BUDGET = longPreferencesKey("monthly_budget")
         val KEY_PIN_CODE = stringPreferencesKey("app_pin_code")
+        val KEY_BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
         val KEY_LAST_AI_DAY = longPreferencesKey("last_ai_request_epoch_day")
         val KEY_LAST_AUTO_MONTH = stringPreferencesKey("last_auto_analyzed_month")

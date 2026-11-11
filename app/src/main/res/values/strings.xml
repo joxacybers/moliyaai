@@ -141,6 +141,8 @@
     <string name="checking_updates">Checking for updates…</string>
     <string name="up_to_date">You have the latest version installed (%1$s)</string>
     <string name="update_check_failed">Could not check for updates (%1$s)</string>
+    <string name="biometric_unlock_title">Biometric unlock</string>
+    <string name="biometric_unlock_desc">Unlock app using fingerprint or face</string>
 
     <!-- Subscriptions -->
     <string name="nav_subscriptions">Subs</string>

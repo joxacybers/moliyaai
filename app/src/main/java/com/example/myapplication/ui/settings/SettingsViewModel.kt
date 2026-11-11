@@ -35,6 +35,7 @@ data class SettingsUiState(
     val monthlyBudget: Long = 0,
     val monthlyBudgetText: String = "",
     val pinCode: String = "",
+    val biometricEnabled: Boolean = true,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val isAiConfigured: Boolean = true,
     val modelName: String = AiAdvisor.DISPLAY_MODEL_NAME,
@@ -57,17 +58,30 @@ class SettingsViewModel(
         settingsRepo.monthlyBudget,
         budgetInput,
         settingsRepo.pinCode,
+        settingsRepo.biometricEnabled,
         settingsRepo.themeMode,
-    ) { budget, input, pin, theme ->
+    ) { args: Array<Any?> ->
+        val budget = args[0] as Long
+        val input = args[1] as String?
+        val pin = args[2] as String
+        val biometric = args[3] as Boolean
+        val theme = args[4] as ThemeMode
         SettingsUiState(
             monthlyBudget = budget,
             monthlyBudgetText = input ?: if (budget > 0) budget.toString() else "",
             pinCode = pin,
+            biometricEnabled = biometric,
             themeMode = theme,
             isAiConfigured = aiAdvisor.isConfigured,
             modelName = AiAdvisor.DISPLAY_MODEL_NAME,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
+
+    fun setBiometricEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepo.setBiometricEnabled(enabled)
+        }
+    }
 
     fun setBudgetText(text: String) {
         budgetInput.value = text.filter { it.isDigit() }

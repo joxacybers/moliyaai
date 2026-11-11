@@ -137,6 +137,8 @@
     <string name="checking_updates">Yangilanishlar tekshirilmoqda…</string>
     <string name="up_to_date">Sizda eng soʻnggi versiya oʻrnatilgan (%1$s)</string>
     <string name="update_check_failed">Yangilanishlarni tekshirib boʻlmadi (%1$s)</string>
+    <string name="biometric_unlock_title">Barmoq izi bilan kirish</string>
+    <string name="biometric_unlock_desc">Ilovaga barmoq izi yoki yuz orqali kirish</string>
 
     <!-- Subscriptions -->
     <string name="nav_subscriptions">Obunalar</string>

@@ -4,12 +4,12 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -74,7 +74,7 @@ import com.example.myapplication.updater.ReleaseInfo
 import com.example.myapplication.updater.UpdateCheckResult
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -82,6 +82,7 @@ class MainActivity : ComponentActivity() {
             val container = appContainer()
             val themeMode by container.settingsRepository.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
             val pinCode by container.settingsRepository.pinCode.collectAsStateWithLifecycle(initialValue = null)
+            val biometricEnabled by container.settingsRepository.biometricEnabled.collectAsStateWithLifecycle(initialValue = true)
 
             val permissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission(),
@@ -114,9 +115,19 @@ class MainActivity : ComponentActivity() {
                         // Still reading DataStore
                     }
                     pinCode!!.isNotEmpty() && !pinUnlocked -> {
+                        val isBiometricAvailable = remember {
+                            com.example.myapplication.ui.auth.BiometricHelper.isBiometricAvailable(this@MainActivity)
+                        }
                         PinLockScreen(
                             expectedPin = pinCode!!,
                             onUnlocked = { pinUnlocked = true },
+                            biometricAvailable = isBiometricAvailable && biometricEnabled,
+                            onBiometricClick = {
+                                com.example.myapplication.ui.auth.BiometricHelper.promptBiometric(
+                                    activity = this@MainActivity,
+                                    onSuccess = { pinUnlocked = true },
+                                )
+                            },
                         )
                     }
                     else -> {

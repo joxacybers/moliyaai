@@ -107,9 +107,17 @@ fun SplashScreen(onFinished: () -> Unit) {
 fun PinLockScreen(
     expectedPin: String,
     onUnlocked: () -> Unit,
+    biometricAvailable: Boolean = false,
+    onBiometricClick: () -> Unit = {},
 ) {
     var entered by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
+
+    LaunchedEffect(biometricAvailable) {
+        if (biometricAvailable) {
+            onBiometricClick()
+        }
+    }
 
     fun onDigit(digit: String) {
         if (entered.length < 4) {
@@ -225,7 +233,25 @@ fun PinLockScreen(
                     ) {
                         row.forEach { key ->
                             if (key.isEmpty()) {
-                                Spacer(Modifier.size(72.dp))
+                                if (biometricAvailable) {
+                                    Surface(
+                                        onClick = onBiometricClick,
+                                        modifier = Modifier.size(72.dp),
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.ic_fingerprint),
+                                                contentDescription = "Barmoq izi",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(32.dp),
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    Spacer(Modifier.size(72.dp))
+                                }
                             } else {
                                 PinKeyButton(
                                     label = key,
