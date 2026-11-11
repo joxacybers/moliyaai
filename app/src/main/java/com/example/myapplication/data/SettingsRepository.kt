@@ -45,6 +45,13 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { it[KEY_BIOMETRIC_ENABLED] = enabled }
     }
 
+    /** Whether automatic SMS expense detection from bank messages is enabled. */
+    val smsAutoDetectEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_SMS_AUTO_DETECT] ?: true }
+
+    suspend fun setSmsAutoDetectEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_SMS_AUTO_DETECT] = enabled }
+    }
+
     /** Theme mode (SYSTEM, LIGHT, DARK). */
     val themeMode: Flow<ThemeMode> = context.dataStore.data.map { prefs ->
         val raw = prefs[KEY_THEME_MODE] ?: ThemeMode.SYSTEM.name
@@ -102,6 +109,7 @@ class SettingsRepository(private val context: Context) {
         val KEY_BUDGET = longPreferencesKey("monthly_budget")
         val KEY_PIN_CODE = stringPreferencesKey("app_pin_code")
         val KEY_BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
+        val KEY_SMS_AUTO_DETECT = booleanPreferencesKey("sms_auto_detect_enabled")
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
         val KEY_LAST_AI_DAY = longPreferencesKey("last_ai_request_epoch_day")
         val KEY_LAST_AUTO_MONTH = stringPreferencesKey("last_auto_analyzed_month")

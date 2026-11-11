@@ -13,11 +13,15 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.myapplication.MainActivity
 import com.example.myapplication.R
+import com.example.myapplication.sms.ParsedSmsTransaction
+import com.example.myapplication.sms.SmsExpenseActionReceiver
 import com.example.myapplication.ui.common.formatAmount
+import com.example.myapplication.ui.common.labelRes
 
 object AppNotificationHelper {
     private const val CHANNEL_BUDGET_ID = "budget_alerts_channel"
     private const val CHANNEL_REMINDERS_ID = "reminders_channel"
+    private const val CHANNEL_SMS_ID = "sms_transactions_channel"
 
     private fun formatMoneyText(amount: Long): String = "${formatAmount(amount)} soʻm"
 
@@ -41,8 +45,90 @@ object AppNotificationHelper {
             description = context.getString(R.string.notification_channel_reminders_desc)
         }
 
+        val smsChannel = NotificationChannel(
+            CHANNEL_SMS_ID,
+            context.getString(R.string.notification_channel_sms),
+            NotificationManager.IMPORTANCE_HIGH,
+        ).apply {
+            description = context.getString(R.string.notification_channel_sms_desc)
+            enableVibration(true)
+        }
+
         notificationManager.createNotificationChannel(budgetChannel)
         notificationManager.createNotificationChannel(remindersChannel)
+        notificationManager.createNotificationChannel(smsChannel)
+    }
+
+    fun showSmsExpenseDetected(
+        context: Context,
+        parsed: ParsedSmsTransaction,
+    ) {
+        createChannels(context)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        val notificationId = 5000 + (parsed.merchant.hashCode() and 0x7FFF)
+
+        // Action: Confirm (Add transaction directly)
+        val confirmIntent = Intent(context, SmsExpenseActionReceiver::class.java).apply {
+            action = SmsExpenseActionReceiver.ACTION_CONFIRM
+            putExtra(SmsExpenseActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
+            putExtra(SmsExpenseActionReceiver.EXTRA_AMOUNT, parsed.amount)
+            putExtra(SmsExpenseActionReceiver.EXTRA_MERCHANT, parsed.merchant)
+            putExtra(SmsExpenseActionReceiver.EXTRA_CATEGORY, parsed.category.name)
+            putExtra(SmsExpenseActionReceiver.EXTRA_TYPE, parsed.type.name)
+            putExtra(SmsExpenseActionReceiver.EXTRA_ACCOUNT, parsed.account.name)
+        }
+        val confirmPendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId * 10 + 1,
+            confirmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        // Action: Dismiss
+        val dismissIntent = Intent(context, SmsExpenseActionReceiver::class.java).apply {
+            action = SmsExpenseActionReceiver.ACTION_DISMISS
+            putExtra(SmsExpenseActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
+        }
+        val dismissPendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId * 10 + 2,
+            dismissIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        // Content click: open app
+        val contentIntent = Intent(context, MainActivity::class.java)
+        val contentPendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId * 10 + 3,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val catLabel = context.getString(parsed.category.labelRes)
+        val title = "💳 Yangi xarajat: ${formatMoneyText(parsed.amount)}"
+        val message = "${parsed.merchant} ($catLabel) xarajatlarga qoʻshilsinmi?"
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_SMS_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(contentPendingIntent)
+            .setAutoCancel(true)
+            .addAction(R.drawable.ic_launcher_foreground, "✅ Qoʻshish", confirmPendingIntent)
+            .addAction(R.drawable.ic_launcher_foreground, "Bekor qilish", dismissPendingIntent)
+            .build()
+
+        try {
+            NotificationManagerCompat.from(context).notify(notificationId, notification)
+        } catch (_: SecurityException) {}
     }
 
     fun showBudgetAlert(

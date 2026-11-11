@@ -89,15 +89,22 @@ class MainActivity : FragmentActivity() {
             val biometricEnabled by container.settingsRepository.biometricEnabled.collectAsStateWithLifecycle(initialValue = true)
 
             val permissionLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.RequestPermission(),
+                contract = ActivityResultContracts.RequestMultiplePermissions(),
                 onResult = {},
             )
 
             LaunchedEffect(Unit) {
+                val permissionsToRequest = mutableListOf<String>()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
                     }
+                }
+                if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
+                    permissionsToRequest.add(Manifest.permission.RECEIVE_SMS)
+                }
+                if (permissionsToRequest.isNotEmpty()) {
+                    permissionLauncher.launch(permissionsToRequest.toTypedArray())
                 }
             }
 

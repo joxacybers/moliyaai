@@ -217,6 +217,14 @@
     <string name="notification_channel_budget_desc">Alerts when spending reaches 80% or 100% of budget</string>
     <string name="notification_channel_reminders">Payment &amp; Debt Reminders</string>
     <string name="notification_channel_reminders_desc">Reminders for debt due dates and recurring subscriptions</string>
+    <string name="notification_channel_sms">Bank SMS Transactions</string>
+    <string name="notification_channel_sms_desc">Quick confirmation for expenses detected from bank SMS</string>
+
+    <!-- SMS Auto-Detect -->
+    <string name="sms_auto_detect_title">Auto-detect Bank SMS</string>
+    <string name="sms_auto_detect_desc">Automatically recognize expenses from Humo, Uzcard, Click, Payme, Uzum and prompt to add with 1 tap</string>
+    <string name="sms_permission_dialog_title">SMS Permission</string>
+    <string name="sms_permission_dialog_desc">To automatically detect card expenses from bank messages, please grant SMS read permission.</string>
 
     <!-- Budgets & Category Limits -->
     <string name="category_budgets_title">Category Budgets</string>

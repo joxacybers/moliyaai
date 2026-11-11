@@ -36,6 +36,7 @@ data class SettingsUiState(
     val monthlyBudgetText: String = "",
     val pinCode: String = "",
     val biometricEnabled: Boolean = true,
+    val smsAutoDetectEnabled: Boolean = true,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val isAiConfigured: Boolean = true,
     val modelName: String = AiAdvisor.DISPLAY_MODEL_NAME,
@@ -59,18 +60,21 @@ class SettingsViewModel(
         budgetInput,
         settingsRepo.pinCode,
         settingsRepo.biometricEnabled,
+        settingsRepo.smsAutoDetectEnabled,
         settingsRepo.themeMode,
     ) { args: Array<Any?> ->
         val budget = args[0] as Long
         val input = args[1] as String?
         val pin = args[2] as String
         val biometric = args[3] as Boolean
-        val theme = args[4] as ThemeMode
+        val smsAutoDetect = args[4] as Boolean
+        val theme = args[5] as ThemeMode
         SettingsUiState(
             monthlyBudget = budget,
             monthlyBudgetText = input ?: if (budget > 0) budget.toString() else "",
             pinCode = pin,
             biometricEnabled = biometric,
+            smsAutoDetectEnabled = smsAutoDetect,
             themeMode = theme,
             isAiConfigured = aiAdvisor.isConfigured,
             modelName = AiAdvisor.DISPLAY_MODEL_NAME,
@@ -80,6 +84,12 @@ class SettingsViewModel(
     fun setBiometricEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepo.setBiometricEnabled(enabled)
+        }
+    }
+
+    fun setSmsAutoDetectEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepo.setSmsAutoDetectEnabled(enabled)
         }
     }
 

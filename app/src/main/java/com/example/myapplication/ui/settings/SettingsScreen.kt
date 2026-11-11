@@ -1,11 +1,14 @@
 package com.example.myapplication.ui.settings
 
+import android.Manifest
 import android.app.LocaleManager
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -114,6 +117,18 @@ fun SettingsScreen(
     val csvExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv"),
         onResult = { uri -> uri?.let { viewModel.exportCsv(it) } },
+    )
+
+    val smsPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            viewModel.setSmsAutoDetectEnabled(isGranted)
+            if (!isGranted) {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.sms_permission_dialog_desc))
+                }
+            }
+        },
     )
 
     val msgBackupSaved = stringResource(R.string.msg_backup_saved)
@@ -256,6 +271,57 @@ fun SettingsScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+
+            // SMS Auto-Detect
+            item {
+                SectionTitle(stringResource(R.string.sms_auto_detect_title))
+                Spacer(Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.sms_auto_detect_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = stringResource(R.string.sms_auto_detect_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Switch(
+                            checked = state.smsAutoDetectEnabled,
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    val hasPermission = ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.RECEIVE_SMS,
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                    if (hasPermission) {
+                                        viewModel.setSmsAutoDetectEnabled(true)
+                                    } else {
+                                        smsPermissionLauncher.launch(Manifest.permission.RECEIVE_SMS)
+                                    }
+                                } else {
+                                    viewModel.setSmsAutoDetectEnabled(false)
+                                }
+                            },
+                        )
                     }
                 }
             }
