@@ -63,6 +63,10 @@ import com.example.myapplication.ui.common.incomeColor
 import com.example.myapplication.ui.common.money
 import com.example.myapplication.ui.common.tintColor
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
@@ -70,6 +74,8 @@ fun DashboardScreen(
     onOpenAdvisor: () -> Unit,
     onOpenSettings: () -> Unit,
     onSeeAllHistory: () -> Unit,
+    onOpenCategoryBudgets: () -> Unit,
+    onOpenDebts: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val container = appContainer()
@@ -119,6 +125,32 @@ fun DashboardScreen(
                     summary = state.latestAdvice?.advice?.summary,
                     onClick = onOpenAdvisor,
                 )
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    QuickActionCard(
+                        title = stringResource(R.string.category_budgets_title),
+                        subtitle = "Oylik limitlar",
+                        icon = R.drawable.ic_bar_chart,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        onClick = onOpenCategoryBudgets,
+                        modifier = Modifier.weight(1f),
+                    )
+                    QuickActionCard(
+                        title = stringResource(R.string.debt_title),
+                        subtitle = "Nasiyalar daftari",
+                        icon = R.drawable.ic_subscriptions,
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        onClick = onOpenDebts,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
 
             if (state.topCategoriesThisMonth.isNotEmpty()) {
@@ -449,3 +481,58 @@ private fun AiBannerCard(summary: String?, onClick: () -> Unit) {
         }
     }
 }
+
+@Composable
+private fun QuickActionCard(
+    title: String,
+    subtitle: String,
+    @androidx.annotation.DrawableRes icon: Int,
+    containerColor: Color,
+    contentColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(contentColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+            Spacer(Modifier.width(10.dp))
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = contentColor.copy(alpha = 0.8f),
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+

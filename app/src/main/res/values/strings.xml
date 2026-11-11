@@ -211,4 +211,51 @@
     <string name="cat_shopping">Shopping</string>
     <string name="cat_loans">Loans &amp; credit</string>
     <string name="cat_other_expense">Other expense</string>
+
+    <!-- Notifications & Channels -->
+    <string name="notification_channel_budget">Budget Alerts</string>
+    <string name="notification_channel_budget_desc">Alerts when spending reaches 80% or 100% of budget</string>
+    <string name="notification_channel_reminders">Payment &amp; Debt Reminders</string>
+    <string name="notification_channel_reminders_desc">Reminders for debt due dates and recurring subscriptions</string>
+
+    <!-- Budgets & Category Limits -->
+    <string name="category_budgets_title">Category Budgets</string>
+    <string name="budget_subtitle">Set monthly spending limits per category</string>
+    <string name="budget_set_limit">Set Limit</string>
+    <string name="budget_edit_limit">Edit Limit</string>
+    <string name="budget_no_limits">No category budgets set yet.</string>
+    <string name="budget_spent">Spent</string>
+    <string name="budget_remaining">Remaining</string>
+    <string name="budget_limit">Limit</string>
+    <string name="budget_exceeded_by">Exceeded limit by %1$s!</string>
+    <string name="budget_warning_80">Over 80%% of budget spent</string>
+    <string name="budget_remove_limit">Remove Limit</string>
+
+    <!-- Debts & Loans Tracker -->
+    <string name="debt_title">Debts &amp; Loans</string>
+    <string name="debt_tab_lent">Lent (To Receive)</string>
+    <string name="debt_tab_borrowed">Borrowed (To Pay)</string>
+    <string name="debt_add_title">Add New Debt</string>
+    <string name="debt_person_name">Person Name</string>
+    <string name="debt_phone">Phone Number (optional)</string>
+    <string name="debt_due_date">Due Date</string>
+    <string name="debt_no_due_date">No due date</string>
+    <string name="debt_paid">Paid</string>
+    <string name="debt_record_payment">Record Payment</string>
+    <string name="debt_settle_action">Mark as Settled</string>
+    <string name="debt_settled_badge">Settled</string>
+    <string name="debt_empty_lent">No lent debts</string>
+    <string name="debt_empty_borrowed">No borrowed debts</string>
+    <string name="debt_total_to_receive">Total to receive</string>
+    <string name="debt_total_to_pay">Total to pay</string>
+    <string name="debt_overdue">Overdue!</string>
+    <string name="debt_type_lent_desc">I gave money (I will receive)</string>
+    <string name="debt_type_borrowed_desc">I borrowed money (I need to return)</string>
+
+    <!-- Common Presets for recurring payments -->
+    <string name="sub_preset_wifi">Internet / Wi-Fi</string>
+    <string name="sub_preset_rent">Rent (Home / Office)</string>
+    <string name="sub_preset_utilities">Utilities (Electricity, Gas, Water)</string>
+    <string name="sub_preset_gym">Gym / Fitness</string>
+    <string name="sub_preset_mobile">Mobile Connection</string>
 </resources>

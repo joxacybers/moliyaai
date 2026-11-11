@@ -1,13 +1,17 @@
 package com.example.myapplication.ui.addedit
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.BudgetRepository
 import com.example.myapplication.data.TransactionRepository
 import com.example.myapplication.data.db.TransactionEntity
 import com.example.myapplication.data.db.date
 import com.example.myapplication.data.model.Account
 import com.example.myapplication.data.model.Category
 import com.example.myapplication.data.model.TransactionType
+import com.example.myapplication.notification.AppNotificationHelper
+import com.example.myapplication.ui.common.labelRes
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -30,6 +34,8 @@ data class AddEditUiState(
 
 class AddEditViewModel(
     private val repo: TransactionRepository,
+    private val budgetRepo: BudgetRepository,
+    private val appContext: Context,
     private val transactionId: Long,
 ) : ViewModel() {
 
@@ -111,8 +117,42 @@ class AddEditViewModel(
         )
         viewModelScope.launch {
             repo.save(entity)
+
+            // Check budget limit alert if it's an expense
+            if (entity.type == TransactionType.EXPENSE) {
+                checkBudgetAlert(entity)
+            }
+
             _events.emit(Unit)
         }
+    }
+
+    private suspend fun checkBudgetAlert(entity: TransactionEntity) {
+        try {
+            val budget = budgetRepo.getForCategory(entity.category) ?: return
+            if (budget.limitAmount <= 0) return
+
+            val allTx = repo.getAll()
+            val txDate = entity.date
+            val monthSpent = allTx.filter {
+                it.type == TransactionType.EXPENSE &&
+                    it.category == entity.category &&
+                    it.date.year == txDate.year &&
+                    it.date.monthValue == txDate.monthValue
+            }.sumOf { it.amount }
+
+            val percent = (monthSpent * 100 / budget.limitAmount).toInt()
+            if (percent >= 80) {
+                val catName = appContext.getString(entity.category.labelRes)
+                AppNotificationHelper.showBudgetAlert(
+                    context = appContext,
+                    categoryName = catName,
+                    percent = percent,
+                    spent = monthSpent,
+                    limit = budget.limitAmount,
+                )
+            }
+        } catch (_: Exception) {}
     }
 
     fun delete() {

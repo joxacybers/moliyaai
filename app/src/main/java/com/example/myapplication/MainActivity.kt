@@ -53,12 +53,16 @@ import com.example.myapplication.ui.addedit.AddEditScreen
 import com.example.myapplication.ui.advisor.AdvisorScreen
 import com.example.myapplication.ui.auth.PinLockScreen
 import com.example.myapplication.ui.auth.SplashScreen
+import com.example.myapplication.ui.budget.CategoryBudgetScreen
 import com.example.myapplication.ui.common.UpdateAvailableDialog
 import com.example.myapplication.ui.common.appContainer
 import com.example.myapplication.ui.dashboard.DashboardScreen
+import com.example.myapplication.ui.debts.DebtsScreen
 import com.example.myapplication.ui.history.HistoryScreen
 import com.example.myapplication.ui.navigation.AddEditRoute
 import com.example.myapplication.ui.navigation.AdvisorTab
+import com.example.myapplication.ui.navigation.CategoryBudgetsRoute
+import com.example.myapplication.ui.navigation.DebtsRoute
 import com.example.myapplication.ui.navigation.HistoryTab
 import com.example.myapplication.ui.navigation.HomeTab
 import com.example.myapplication.ui.navigation.SettingsRoute
@@ -188,6 +192,18 @@ fun MainApp() {
                 onOpenAdvisor = { navigator.navigateToTab(AdvisorTab) },
                 onOpenSettings = { navigator.push(SettingsRoute) },
                 onSeeAllHistory = { navigator.navigateToTab(HistoryTab) },
+                onOpenCategoryBudgets = { navigator.push(CategoryBudgetsRoute) },
+                onOpenDebts = { navigator.push(DebtsRoute) },
+            )
+        }
+        entry<CategoryBudgetsRoute> {
+            CategoryBudgetScreen(
+                onNavigateBack = { navigator.pop() },
+            )
+        }
+        entry<DebtsRoute> {
+            DebtsScreen(
+                onNavigateBack = { navigator.pop() },
             )
         }
         entry<HistoryTab> {
@@ -217,7 +233,9 @@ fun MainApp() {
         }
     }
 
-    val isFullScreenRoute = navigator.currentRoute is AddEditRoute
+    val isFullScreenRoute = navigator.currentRoute is AddEditRoute ||
+        navigator.currentRoute is CategoryBudgetsRoute ||
+        navigator.currentRoute is DebtsRoute
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

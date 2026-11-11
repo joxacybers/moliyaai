@@ -2,6 +2,8 @@ package com.example.myapplication.di
 
 import android.content.Context
 import com.example.myapplication.ai.AiAdvisor
+import com.example.myapplication.data.BudgetRepository
+import com.example.myapplication.data.DebtRepository
 import com.example.myapplication.data.SettingsRepository
 import com.example.myapplication.data.SubscriptionRepository
 import com.example.myapplication.data.TransactionRepository
@@ -19,6 +21,12 @@ class AppContainer(context: Context) {
     }
     val subscriptionRepository: SubscriptionRepository by lazy {
         SubscriptionRepository(database.subscriptionDao())
+    }
+    val budgetRepository: BudgetRepository by lazy {
+        BudgetRepository(database.budgetDao())
+    }
+    val debtRepository: DebtRepository by lazy {
+        DebtRepository(database.debtDao())
     }
     val settingsRepository: SettingsRepository by lazy { SettingsRepository(appContext) }
     val backupManager: BackupManager by lazy {

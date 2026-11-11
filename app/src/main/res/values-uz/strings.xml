@@ -207,4 +207,51 @@
     <string name="cat_shopping">Xaridlar</string>
     <string name="cat_loans">Kredit va qarzlar</string>
     <string name="cat_other_expense">Boshqa chiqim</string>
+
+    <!-- Notifications & Channels -->
+    <string name="notification_channel_budget">Byudjet ogohlantirishlari</string>
+    <string name="notification_channel_budget_desc">Xarajat byudjetining 80% yoki 100% ga yetgani haqida bildirishnomalar</string>
+    <string name="notification_channel_reminders">Toʻlov va Qarz eslatmalari</string>
+    <string name="notification_channel_reminders_desc">Qarzlarni qaytarish va obunalar toʻlov sanalari haqida eslatmalar</string>
+
+    <!-- Budgets & Category Limits -->
+    <string name="category_budgets_title">Toifalar boʻyicha Byudjet</string>
+    <string name="budget_subtitle">Har bir toifa uchun oylik xarajat limitlarini belgilash</string>
+    <string name="budget_set_limit">Limit belgilash</string>
+    <string name="budget_edit_limit">Limitni oʻzgartirish</string>
+    <string name="budget_no_limits">Hozircha toifalar uchun limit belgilanmagan.</string>
+    <string name="budget_spent">Sarflangan</string>
+    <string name="budget_remaining">Qolgan</string>
+    <string name="budget_limit">Limit</string>
+    <string name="budget_exceeded_by">Limitdan %1$s oshib ketdi!</string>
+    <string name="budget_warning_80">Limitning 80%% dan ortigʻi sarflandi</string>
+    <string name="budget_remove_limit">Limitni oʻchirish</string>
+
+    <!-- Debts & Loans Tracker -->
+    <string name="debt_title">Qarzlar daftari</string>
+    <string name="debt_tab_lent">Men bergan (Olinadigan)</string>
+    <string name="debt_tab_borrowed">Men olgan (Toʻlanadigan)</string>
+    <string name="debt_add_title">Yangi qarz qoʻshish</string>
+    <string name="debt_person_name">Shaxs ismi</string>
+    <string name="debt_phone">Telefon raqami (ixtiyoriy)</string>
+    <string name="debt_due_date">Qaytarish muddati</string>
+    <string name="debt_no_due_date">Muddatsiz</string>
+    <string name="debt_paid">Qaytarildi</string>
+    <string name="debt_record_payment">Toʻlov kiritish</string>
+    <string name="debt_settle_action">Yopildi deb belgilash</string>
+    <string name="debt_settled_badge">Yopilgan</string>
+    <string name="debt_empty_lent">Siz bergan qarzlar yoʻq</string>
+    <string name="debt_empty_borrowed">Siz olgan qarzlar yoʻq</string>
+    <string name="debt_total_to_receive">Jami olinadigan</string>
+    <string name="debt_total_to_pay">Jami toʻlanadigan</string>
+    <string name="debt_overdue">Muddati oʻtgan!</string>
+    <string name="debt_type_lent_desc">Men qarz berdim (qaytarib olaman)</string>
+    <string name="debt_type_borrowed_desc">Men qarz oldim (qaytarishim kerak)</string>
+
+    <!-- Common Presets for recurring payments -->
+    <string name="sub_preset_wifi">Internet / Wi-Fi</string>
+    <string name="sub_preset_rent">Ijara (Uy / Ofis)</string>
+    <string name="sub_preset_utilities">Kommunal (Elektr, Gaz, Suv)</string>
+    <string name="sub_preset_gym">Sport zal / Fitnes</string>
+    <string name="sub_preset_mobile">Mobil aloqa</string>
 </resources>

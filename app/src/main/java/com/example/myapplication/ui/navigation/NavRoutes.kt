@@ -25,3 +25,9 @@ data class AddEditRoute(val transactionId: Long = 0) : AppRoute
 
 @Serializable
 data object SettingsRoute : AppRoute
+
+@Serializable
+data object CategoryBudgetsRoute : AppRoute
+
+@Serializable
+data object DebtsRoute : AppRoute

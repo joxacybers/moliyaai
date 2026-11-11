@@ -75,8 +75,14 @@ fun AddEditScreen(
     modifier: Modifier = Modifier,
 ) {
     val container = appContainer()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val viewModel: AddEditViewModel = viewModel(key = "add_edit_$transactionId") {
-        AddEditViewModel(container.transactionRepository, transactionId)
+        AddEditViewModel(
+            repo = container.transactionRepository,
+            budgetRepo = container.budgetRepository,
+            appContext = context.applicationContext,
+            transactionId = transactionId,
+        )
     }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }

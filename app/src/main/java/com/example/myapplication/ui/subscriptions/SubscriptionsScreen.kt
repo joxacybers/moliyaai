@@ -83,6 +83,12 @@ private data class ServicePreset(
 )
 
 private val SERVICE_PRESETS = listOf(
+    ServicePreset("Uy ijarasi (Kvartira / Ofis)", 3_500_000L, "3 500 000 soʻm", 0xFF673AB7),
+    ServicePreset("Internet / Wi-Fi", 150_000L, "150 000 soʻm", 0xFF0288D1),
+    ServicePreset("Kommunal (Elektr, Gaz, Suv)", 250_000L, "250 000 soʻm", 0xFFFF9800),
+    ServicePreset("Mobil aloqa / Tarif", 50_000L, "50 000 soʻm", 0xFF4CAF50),
+    ServicePreset("Sport zal / Fitnes", 300_000L, "300 000 soʻm", 0xFFE91E63),
+    ServicePreset("Oʻquv kursi / Repetitor", 500_000L, "500 000 soʻm", 0xFF009688),
     ServicePreset("Yandex Plus / Music", 15_990L, "15 990 soʻm", 0xFFFC3F1D),
     ServicePreset("Spotify Premium", 65_000L, "$4.99", 0xFF1DB954),
     ServicePreset("Netflix", 125_000L, "$9.99", 0xFFE50914),
