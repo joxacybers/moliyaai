@@ -28,6 +28,9 @@ class AppContainer(context: Context) {
     val debtRepository: DebtRepository by lazy {
         DebtRepository(database.debtDao())
     }
+    val savingsRepository: com.example.myapplication.data.SavingsRepository by lazy {
+        com.example.myapplication.data.SavingsRepository(database.savingsGoalDao(), appContext)
+    }
     val settingsRepository: SettingsRepository by lazy { SettingsRepository(appContext) }
     val backupManager: BackupManager by lazy {
         BackupManager(appContext, transactionRepository, settingsRepository)

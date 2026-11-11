@@ -65,11 +65,13 @@ import com.example.myapplication.ui.navigation.CategoryBudgetsRoute
 import com.example.myapplication.ui.navigation.DebtsRoute
 import com.example.myapplication.ui.navigation.HistoryTab
 import com.example.myapplication.ui.navigation.HomeTab
+import com.example.myapplication.ui.navigation.SavingsRoute
 import com.example.myapplication.ui.navigation.SettingsRoute
 import com.example.myapplication.ui.navigation.StatsTab
 import com.example.myapplication.ui.navigation.SubscriptionsTab
 import com.example.myapplication.ui.navigation.rememberAppNavigator
 import com.example.myapplication.ui.navigation.toDecoratedEntries
+import com.example.myapplication.ui.savings.SavingsGoalsScreen
 import com.example.myapplication.ui.settings.SettingsScreen
 import com.example.myapplication.ui.stats.StatsScreen
 import com.example.myapplication.ui.subscriptions.SubscriptionsScreen
@@ -201,6 +203,7 @@ fun MainApp() {
                 onSeeAllHistory = { navigator.navigateToTab(HistoryTab) },
                 onOpenCategoryBudgets = { navigator.push(CategoryBudgetsRoute) },
                 onOpenDebts = { navigator.push(DebtsRoute) },
+                onOpenSavings = { navigator.push(SavingsRoute) },
             )
         }
         entry<CategoryBudgetsRoute> {
@@ -210,6 +213,11 @@ fun MainApp() {
         }
         entry<DebtsRoute> {
             DebtsScreen(
+                onNavigateBack = { navigator.pop() },
+            )
+        }
+        entry<SavingsRoute> {
+            SavingsGoalsScreen(
                 onNavigateBack = { navigator.pop() },
             )
         }
@@ -242,7 +250,8 @@ fun MainApp() {
 
     val isFullScreenRoute = navigator.currentRoute is AddEditRoute ||
         navigator.currentRoute is CategoryBudgetsRoute ||
-        navigator.currentRoute is DebtsRoute
+        navigator.currentRoute is DebtsRoute ||
+        navigator.currentRoute is SavingsRoute
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

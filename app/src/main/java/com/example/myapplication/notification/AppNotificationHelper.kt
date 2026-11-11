@@ -264,4 +264,58 @@ object AppNotificationHelper {
             NotificationManagerCompat.from(context).notify(4000 + name.hashCode(), notification)
         } catch (_: SecurityException) {}
     }
+
+    fun showEmergencyFundReminder(
+        context: Context,
+        incomeAmount: Long,
+        suggestedDeposit: Long,
+        percent: Int,
+    ) {
+        createChannels(context)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        val notificationId = 6000 + ((incomeAmount / 1000) % 1000).toInt()
+
+        val addIntent = Intent(context, com.example.myapplication.savings.EmergencyFundActionReceiver::class.java).apply {
+            action = com.example.myapplication.savings.EmergencyFundActionReceiver.ACTION_ADD_EMERGENCY
+            putExtra(com.example.myapplication.savings.EmergencyFundActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
+            putExtra(com.example.myapplication.savings.EmergencyFundActionReceiver.EXTRA_AMOUNT, suggestedDeposit)
+        }
+        val addPendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId * 10 + 1,
+            addIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val openIntent = Intent(context, MainActivity::class.java)
+        val openPendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId * 10 + 2,
+            openIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val title = "🛡️ Moliyaviy yostiqcha eslatmasi"
+        val message = "Yangi ${formatMoneyText(incomeAmount)} daromaddan ${percent}% (${formatMoneyText(suggestedDeposit)}) ni xavfsizlik jamgʻarmasiga qoʻshib qoʻyishni unutmang!"
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_REMINDERS_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(openPendingIntent)
+            .setAutoCancel(true)
+            .addAction(R.drawable.ic_launcher_foreground, "✅ Yostiqchaga qoʻshish", addPendingIntent)
+            .build()
+
+        try {
+            NotificationManagerCompat.from(context).notify(notificationId, notification)
+        } catch (_: SecurityException) {}
+    }
 }

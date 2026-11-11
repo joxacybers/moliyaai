@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -35,6 +36,7 @@ data class AddEditUiState(
 class AddEditViewModel(
     private val repo: TransactionRepository,
     private val budgetRepo: BudgetRepository,
+    private val savingsRepo: com.example.myapplication.data.SavingsRepository,
     private val appContext: Context,
     private val transactionId: Long,
 ) : ViewModel() {
@@ -121,10 +123,27 @@ class AddEditViewModel(
             // Check budget limit alert if it's an expense
             if (entity.type == TransactionType.EXPENSE) {
                 checkBudgetAlert(entity)
+            } else if (entity.type == TransactionType.INCOME) {
+                checkEmergencyFundReminder(entity)
             }
 
             _events.emit(Unit)
         }
+    }
+
+    private suspend fun checkEmergencyFundReminder(entity: TransactionEntity) {
+        try {
+            val percent = savingsRepo.emergencyFundPercent.first()
+            val suggested = (entity.amount * percent) / 100
+            if (suggested > 0) {
+                AppNotificationHelper.showEmergencyFundReminder(
+                    context = appContext,
+                    incomeAmount = entity.amount,
+                    suggestedDeposit = suggested,
+                    percent = percent,
+                )
+            }
+        } catch (_: Exception) {}
     }
 
     private suspend fun checkBudgetAlert(entity: TransactionEntity) {

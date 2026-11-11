@@ -80,6 +80,7 @@ fun AddEditScreen(
         AddEditViewModel(
             repo = container.transactionRepository,
             budgetRepo = container.budgetRepository,
+            savingsRepo = container.savingsRepository,
             appContext = context.applicationContext,
             transactionId = transactionId,
         )

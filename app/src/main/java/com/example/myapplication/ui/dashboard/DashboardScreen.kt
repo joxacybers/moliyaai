@@ -76,6 +76,7 @@ fun DashboardScreen(
     onSeeAllHistory: () -> Unit,
     onOpenCategoryBudgets: () -> Unit,
     onOpenDebts: () -> Unit,
+    onOpenSavings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val container = appContainer()
@@ -151,6 +152,12 @@ fun DashboardScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
+            }
+
+            item {
+                SavingsBannerCard(
+                    onClick = onOpenSavings,
+                )
             }
 
             if (state.topCategoriesThisMonth.isNotEmpty()) {
@@ -530,6 +537,52 @@ private fun QuickActionCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = contentColor.copy(alpha = 0.8f),
                     maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavingsBannerCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = "🛡️", style = MaterialTheme.typography.titleMedium)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = "Jamgʻarmalar & Moliyaviy yostiqcha",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = "Maqsadlar uchun pul toʻplash va xavfsizlik zaxirasi",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                 )
             }
         }
