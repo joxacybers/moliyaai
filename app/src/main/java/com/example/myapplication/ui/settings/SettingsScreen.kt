@@ -432,6 +432,7 @@ fun SettingsScreen(
                                 keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Done,
                             ),
+                            visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
                             keyboardActions = KeyboardActions(onDone = { viewModel.saveBudget() }),
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,

@@ -436,6 +436,7 @@ private fun AddSubscriptionDialog(
                     label = { Text(stringResource(R.string.amount)) },
                     suffix = { Text(stringResource(R.string.currency_suffix)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )

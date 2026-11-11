@@ -172,6 +172,7 @@ fun CategoryBudgetScreen(
                         label = { Text(stringResource(R.string.budget_limit)) },
                         placeholder = { Text("2 000 000") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         suffix = { Text("soʻm") },

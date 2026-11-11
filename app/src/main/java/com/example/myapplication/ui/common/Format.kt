@@ -4,6 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import com.example.myapplication.R
 import com.example.myapplication.data.model.TransactionType
 import java.time.LocalDate
@@ -77,5 +81,61 @@ fun formatRelativeDay(date: LocalDate): String {
         today -> "${stringResource(R.string.today)}, ${date.dayOfMonth}-$monthShort"
         today.minusDays(1) -> "${stringResource(R.string.yesterday)}, ${date.dayOfMonth}-$monthShort"
         else -> formatDate(date)
+    }
+}
+
+/**
+ * Automatically groups digits into groups of 3 separated by spaces
+ * (e.g. "1250000" visually displays as "1 250 000") without altering the raw numeric value.
+ */
+class ThousandsSeparatorVisualTransformation(
+    private val delimiter: Char = ' ',
+) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val originalText = text.text
+        if (originalText.isEmpty()) {
+            return TransformedText(text, OffsetMapping.Identity)
+        }
+
+        val out = StringBuilder()
+        val originalLength = originalText.length
+        for (i in 0 until originalLength) {
+            out.append(originalText[i])
+            val remaining = originalLength - (i + 1)
+            if (remaining > 0 && remaining % 3 == 0) {
+                out.append(delimiter)
+            }
+        }
+
+        val formattedText = out.toString()
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset <= 0) return 0
+                val safeOffset = offset.coerceAtMost(originalLength)
+                var spacesBefore = 0
+                for (k in 0 until safeOffset) {
+                    val remaining = originalLength - (k + 1)
+                    if (remaining > 0 && remaining % 3 == 0) {
+                        spacesBefore++
+                    }
+                }
+                return (safeOffset + spacesBefore).coerceAtMost(formattedText.length)
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (offset <= 0) return 0
+                val safeOffset = offset.coerceAtMost(formattedText.length)
+                var originalOffset = 0
+                for (i in 0 until safeOffset) {
+                    if (formattedText[i] != delimiter) {
+                        originalOffset++
+                    }
+                }
+                return originalOffset.coerceAtMost(originalLength)
+            }
+        }
+
+        return TransformedText(AnnotatedString(formattedText), offsetMapping)
     }
 }

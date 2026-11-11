@@ -176,6 +176,7 @@ fun AddEditScreen(
                 label = { Text(stringResource(R.string.amount)) },
                 suffix = { Text(stringResource(R.string.currency_suffix)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
                 isError = state.amountError,
                 supportingText = if (state.amountError) {
                     { Text(stringResource(R.string.amount_error)) }
