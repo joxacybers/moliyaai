@@ -175,7 +175,7 @@ fun CategoryBudgetScreen(
                         visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        suffix = { Text("soʻm") },
+                        suffix = { Text("söm") },
                     )
                     Spacer(Modifier.height(12.dp))
                     // Quick presets
@@ -301,7 +301,7 @@ private fun TotalBudgetCard(
                     )
                     Text(
                         text = if (isExceeded) {
-                            "Limitdan oshdi: ${money(totalSpent - totalBudget)}"
+                            "Limitdan oşdi: ${money(totalSpent - totalBudget)}"
                         } else {
                             "Qolgan: ${money(totalBudget - totalSpent)}"
                         },

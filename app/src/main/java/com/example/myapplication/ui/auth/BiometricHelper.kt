@@ -17,7 +17,7 @@ object BiometricHelper {
     fun promptBiometric(
         activity: FragmentActivity,
         title: String = "Barmoq izi bilan tasdiqlang",
-        subtitle: String = "Moliya AI ilovasiga kirish",
+        subtitle: String = "Moliya AI ilovasiga kiriş",
         negativeButtonText: String = "PIN-kod orqali",
         onSuccess: () -> Unit,
         onError: ((String) -> Unit)? = null,

@@ -30,7 +30,7 @@ object AppNotificationHelper {
     private const val CHANNEL_REMINDERS_ID = "reminders_channel"
     private const val CHANNEL_SMS_ID = "sms_transactions_channel"
 
-    private fun formatMoneyText(amount: Long): String = "${formatAmount(amount)} soʻm"
+    private fun formatMoneyText(amount: Long): String = "${formatAmount(amount)} söm"
 
     fun createChannels(context: Context) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -73,11 +73,11 @@ object AppNotificationHelper {
         val catLabel = parsed.customCategoryName.ifBlank { context.getString(parsed.category.labelRes) }
         val isIncome = parsed.type == TransactionType.INCOME
         val title = if (isIncome) {
-            "💰 Yangi sotuv / tushum: ${formatMoneyText(parsed.amount)}"
+            "💰 Yangi sotuv / tuşum: ${formatMoneyText(parsed.amount)}"
         } else {
             "💳 Yangi xarid: ${formatMoneyText(parsed.amount)}"
         }
-        val message = "${parsed.merchant} • Toifa: $catLabel (AI qoralama tayyor — tekshirib tasdiqlang)"
+        val message = "${parsed.merchant} • Toifa: $catLabel (AI qoralama tayyor — tekşirib tasdiqlang)"
 
         val app = context.applicationContext as? FinanceApp
         val dbId = app?.container?.notificationRepository?.insert(
@@ -177,7 +177,7 @@ object AppNotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(contentPendingIntent)
             .setAutoCancel(true)
-            .addAction(R.drawable.ic_launcher_foreground, "✅ Tasdiqlash", confirmPendingIntent)
+            .addAction(R.drawable.ic_launcher_foreground, "✅ Tasdiqlaş", confirmPendingIntent)
             .addAction(R.drawable.ic_launcher_foreground, "Keyinroq", dismissPendingIntent)
             .build()
 
@@ -196,13 +196,13 @@ object AppNotificationHelper {
         val title = if (percent >= 100) {
             "⚠️ Byudjet limiti tugadi! ($categoryName)"
         } else {
-            "⚡ Byudjet ogohlantirishi: $percent% ($categoryName)"
+            "⚡ Byudjet ogohlantirişi: $percent% ($categoryName)"
         }
 
         val message = if (percent >= 100) {
-            "$categoryName uchun belgilangan limit toʻliq sarflandi: ${formatMoneyText(spent)} / ${formatMoneyText(limit)}"
+            "$categoryName uçun belgilangan limit töliq sarflandi: ${formatMoneyText(spent)} / ${formatMoneyText(limit)}"
         } else {
-            "$categoryName boʻyicha limitning $percent% qismi sarflandi (${formatMoneyText(spent)} / ${formatMoneyText(limit)})"
+            "$categoryName böyiça limitning $percent% qismi sarflandi (${formatMoneyText(spent)} / ${formatMoneyText(limit)})"
         }
 
         val app = context.applicationContext as? FinanceApp
@@ -257,11 +257,11 @@ object AppNotificationHelper {
         amount: Long,
         isLent: Boolean,
     ) {
-        val title = if (isLent) "🤝 Qarzni qaytarib olish eslatmasi" else "💳 Qarzni toʻlash eslatmasi"
+        val title = if (isLent) "🤝 Qarzni qaytarib oliş eslatmasi" else "💳 Qarzni tölaş eslatmasi"
         val message = if (isLent) {
-            "$personName sizga ${formatMoneyText(amount)} qarzini qaytarish muddati keldi"
+            "$personName sizga ${formatMoneyText(amount)} qarzini qaytariş muddati keldi"
         } else {
-            "$personName ga ${formatMoneyText(amount)} qarzni qaytarish muddati keldi"
+            "$personName ga ${formatMoneyText(amount)} qarzni qaytariş muddati keldi"
         }
 
         val app = context.applicationContext as? FinanceApp
@@ -315,8 +315,8 @@ object AppNotificationHelper {
         name: String,
         amount: Long,
     ) {
-        val title = "📅 Doimiy toʻlov kuni: $name"
-        val message = "Bugun $name uchun toʻlov sanasi (${formatMoneyText(amount)})"
+        val title = "📅 Doimiy tölov kuni: $name"
+        val message = "Bugun $name uçun tölov sanasi (${formatMoneyText(amount)})"
 
         val app = context.applicationContext as? FinanceApp
         if (app != null) {
@@ -370,8 +370,8 @@ object AppNotificationHelper {
         suggestedDeposit: Long,
         percent: Int,
     ) {
-        val title = "🛡️ Moliyaviy yostiqcha eslatmasi"
-        val message = "Yangi ${formatMoneyText(incomeAmount)} daromaddan ${percent}% (${formatMoneyText(suggestedDeposit)}) ni xavfsizlik jamgʻarmasiga qoʻshib qoʻyishni unutmang!"
+        val title = "🛡️ Moliyaviy yostiqça eslatmasi"
+        val message = "Yangi ${formatMoneyText(incomeAmount)} daromaddan ${percent}% (${formatMoneyText(suggestedDeposit)}) ni xavfsizlik jamğarmasiga qöşib qöyişni unutmang!"
 
         CoroutineScope(Dispatchers.IO).launch {
             val app = context.applicationContext as? FinanceApp
@@ -422,7 +422,7 @@ object AppNotificationHelper {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(openPendingIntent)
                 .setAutoCancel(true)
-                .addAction(R.drawable.ic_launcher_foreground, "✅ Yostiqchaga qoʻshish", addPendingIntent)
+                .addAction(R.drawable.ic_launcher_foreground, "✅ Yostiqçaga qöşiş", addPendingIntent)
                 .build()
 
             try {

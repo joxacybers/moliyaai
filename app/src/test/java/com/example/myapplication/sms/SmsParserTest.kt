@@ -85,6 +85,18 @@ class SmsParserTest {
     }
 
     @Test
+    fun parseReformedUzbekAlphabetSms_extractsAmountAndCategory() {
+        val sms = "HUMO: 120 000 söm tölandi. KORZINKA. Balans: 1 500 000 söm"
+        val parsed = SmsParser.parse("HUMO", sms)
+
+        assertNotNull(parsed)
+        assertEquals(120000L, parsed!!.amount)
+        assertEquals("KORZINKA", parsed.merchant)
+        assertEquals(Category.FOOD, parsed.category)
+        assertEquals(TransactionType.EXPENSE, parsed.type)
+    }
+
+    @Test
     fun parseNonFinancialSms_returnsNull() {
         val sms = "Sizning tasdiqlash kodingiz: 123456. Hech kimga bermang."
         val parsed = SmsParser.parse("TELECOM", sms)

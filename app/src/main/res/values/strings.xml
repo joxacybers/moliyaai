@@ -108,7 +108,7 @@
     <!-- Settings -->
     <string name="language">Language</string>
     <string name="language_system">System default</string>
-    <string name="language_uzbek" translatable="false">Oʻzbekcha</string>
+    <string name="language_uzbek" translatable="false">Özbekça</string>
     <string name="language_english" translatable="false">English</string>
     <string name="budget_title">Monthly budget limit</string>
     <string name="budget_hint">0 means no limit</string>

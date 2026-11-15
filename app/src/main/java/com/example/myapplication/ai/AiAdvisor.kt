@@ -225,22 +225,22 @@ class AiAdvisor(private val context: Context) {
                 )
             } else {
                 AiAdvice(
-                    summary = "Joriy oyda hali yetarli kirim va chiqim amallari kiritilmagan. Kunlik xarajatlaringizni muntazam kiritib boring — shunda AI sarf-xarajat odatlaringizni tahlil qilib, keyingi oy uchun aniq prognoz beradi.",
+                    summary = "Joriy oyda hali yetarli kirim va çiqim amallari kiritilmagan. Kunlik xarajatlaringizni muntazam kiritib boring — şunda AI sarf-xarajat odatlaringizni tahlil qilib, keyingi oy uçun aniq prognoz beradi.",
                     risks = listOf(
-                        "Amallar tarixi kamligi sababli ortiqcha xarajat ketayotgan toifalarni aniqlash qiyinlashadi.",
+                        "Amallar tarixi kamligi sababli ortiqça xarajat ketayotgan toifalarni aniqlaş qiyinlaşadi.",
                     ),
                     recommendations = listOf(
                         AiRecommendation(
                             title = "Kunlik amallarni muntazam kiriting",
-                            detail = "Karta va naqd puldagi barcha xarajatlarni kiritib boring yoki SMS-avto aniqlash funksiyasini yoqing.",
+                            detail = "Karta va naqd puldagi barça xarajatlarni kiritib boring yoki SMS-avto aniqlaş funksiyasini yoqing.",
                         ),
                         AiRecommendation(
                             title = "Oylik byudjet limitini belgilang",
-                            detail = "Sozlamalar va «Byudjet limitlari» boʻlimida asosiy toifalar uchun oylik chegara oʻrnating.",
+                            detail = "Sozlamalar va «Byudjet limitlari» bölimida asosiy toifalar uçun oylik çegara örnating.",
                         ),
                         AiRecommendation(
-                            title = "Moliyaviy yostiqcha shakllantiring",
-                            detail = "Har bir kirimdan kamida 10% qismini xavfsizlik yostigʻiga ajratib borishni odat qiling.",
+                            title = "Moliyaviy yostiqça şakllantiring",
+                            detail = "Har bir kirimdan kamida 10% qismini xavfsizlik yostiğiga ajratib borişni odat qiling.",
                         ),
                     ),
                 )
@@ -260,12 +260,12 @@ class AiAdvisor(private val context: Context) {
             }
         } else {
             buildString {
-                append("Joriy oyning dastlabki ${cur.daysElapsed} kunida kirimingiz ${fmt(cur.incomeSoFar)} soʻm, chiqimingiz esa ${fmt(cur.expenseSoFar)} soʻmni tashkil etdi (umumiy balans: ${fmt(input.balance)} soʻm). ")
+                append("Joriy oyning dastlabki ${cur.daysElapsed} kunida kirimingiz ${fmt(cur.incomeSoFar)} söm, çiqimingiz esa ${fmt(cur.expenseSoFar)} sömni taşkil etdi (umumiy balans: ${fmt(input.balance)} söm). ")
                 if (cur.projectedExpense > 0) {
-                    append("Hozirgi surʼatda oy yakunigacha jami xarajat ${fmt(cur.projectedExpense)} soʻmga yetishi kutilmoqda. ")
+                    append("Hozirgi surʼatda oy yakunigaça jami xarajat ${fmt(cur.projectedExpense)} sömga yetişi kutilmoqda. ")
                 }
                 input.forecast?.let { f ->
-                    append("Kelasi oy uchun kutilayotgan sof natija: ${if (f.net >= 0) "+" else "−"}${fmt(abs(f.net))} soʻm.")
+                    append("Kelasi oy uçun kutilayotgan sof natija: ${if (f.net >= 0) "+" else "−"}${fmt(abs(f.net))} söm.")
                 }
             }
         }
@@ -278,13 +278,13 @@ class AiAdvisor(private val context: Context) {
                 risks += if (isEnglish) {
                     "You have already exceeded your monthly budget of ${fmt(budget)} so'm by ${fmt(cur.expenseSoFar - budget)} so'm."
                 } else {
-                    "Siz belgilangan ${fmt(budget)} soʻmlik oylik limitdan allaqachon ${fmt(cur.expenseSoFar - budget)} soʻmga oshib ketdingiz."
+                    "Siz belgilangan ${fmt(budget)} sömlik oylik limitdan allaqaçon ${fmt(cur.expenseSoFar - budget)} sömga oşib ketdingiz."
                 }
             } else if (cur.projectedExpense > budget) {
                 risks += if (isEnglish) {
                     "At the current daily pace, your projected monthly spending (${fmt(cur.projectedExpense)} so'm) will exceed your ${fmt(budget)} so'm budget."
                 } else {
-                    "Joriy sarflash tezligida oy oxirigacha xarajatingiz (${fmt(cur.projectedExpense)} soʻm) belgilangan ${fmt(budget)} soʻmlik byudjetdan oshib ketish xavfi bor."
+                    "Joriy sarflaş tezligida oy oxirigaça xarajatingiz (${fmt(cur.projectedExpense)} söm) belgilangan ${fmt(budget)} sömlik byudjetdan oşib ketiş xavfi bor."
                 }
             }
         }
@@ -293,7 +293,7 @@ class AiAdvisor(private val context: Context) {
             risks += if (isEnglish) {
                 "Your expenses this month exceed your income by ${fmt(abs(netSoFar))} so'm."
             } else {
-                "Shu oyda chiqimlaringiz kirimlaringizdan ${fmt(abs(netSoFar))} soʻmga koʻp boʻlmoqda (manfiy balans oqimi)."
+                "Şu oyda çiqimlaringiz kirimlaringizdan ${fmt(abs(netSoFar))} sömga köp bölmoqda (manfiy balans oqimi)."
             }
         }
 
@@ -303,7 +303,7 @@ class AiAdvisor(private val context: Context) {
                 risks += if (isEnglish) {
                     "High concentration in '$catLabel': it accounts for ${top.sharePct}% (${fmt(top.amount)} so'm) of all expenses."
                 } else {
-                    "Xarajatlarning katta qismi «$catLabel» toifasiga toʻgʻri kelmoqda — jami chiqimning ${top.sharePct}% qismi (${fmt(top.amount)} soʻm)."
+                    "Xarajatlarning katta qismi «$catLabel» toifasiga töğri kelmoqda — jami çiqimning ${top.sharePct}% qismi (${fmt(top.amount)} söm)."
                 }
             }
         }
@@ -313,7 +313,7 @@ class AiAdvisor(private val context: Context) {
             risks += if (isEnglish) {
                 "Spending on '$catLabel' increased by +${growing.changePct}% compared to your historical average."
             } else {
-                "«$catLabel» toifasidagi xarajatlar avvalgi oylarga nisbatan +${growing.changePct}% ga oshgan."
+                "«$catLabel» toifasidagi xarajatlar avvalgi oylarga nisbatan +${growing.changePct}% ga oşgan."
             }
         }
 
@@ -321,7 +321,7 @@ class AiAdvisor(private val context: Context) {
             risks += if (isEnglish) {
                 "Your spending pace is currently stable, but keep monitoring discretionary expenses in the second half of the month."
             } else {
-                "Hozircha moliyaviy oqimingiz barqaror, ammo oy oxirida kutilmagan xarajatlardan ehtiyot boʻlish tavsiya etiladi."
+                "Hozirça moliyaviy oqimingiz barqaror, ammo oy oxirida kutilmagan xarajatlardan ehtiyot böliş tavsiya etiladi."
             }
         }
 
@@ -341,8 +341,8 @@ class AiAdvisor(private val context: Context) {
                     )
                 } else {
                     AiRecommendation(
-                        title = "«$catLabel» xarajatlarini 15% ga maqbullashtiring",
-                        detail = "Eng koʻp mablagʻ «$catLabel» toifasiga sarflangan (${fmt(top.amount)} soʻm — ${top.sharePct}%). Ushbu toifaga oylik limit qoʻyib, xarajatlarni 15% ga qisqartiring.",
+                        title = "«$catLabel» xarajatlarini 15% ga maqbullaştiring",
+                        detail = "Eng köp mablağ «$catLabel» toifasiga sarflangan (${fmt(top.amount)} söm — ${top.sharePct}%). Uşbu toifaga oylik limit qöyib, xarajatlarni 15% ga qisqartiring.",
                         estimatedMonthlySavings = saveTarget,
                     )
                 }
@@ -363,7 +363,7 @@ class AiAdvisor(private val context: Context) {
                 } else {
                     AiRecommendation(
                         title = "«$catLabel» toifasini nazoratga oling",
-                        detail = "Ikkinchi eng yirik xarajat manbai — «$catLabel» (${fmt(second.amount)} soʻm, ${second.sharePct}%). Rejasiz xaridlarni kamaytirish orqali qoʻshimcha mablagʻ tejashingiz mumkin.",
+                        detail = "Ikkinçi eng yirik xarajat manbai — «$catLabel» (${fmt(second.amount)} söm, ${second.sharePct}%). Rejasiz xaridlarni kamaytiriş orqali qöşimça mablağ tejaşingiz mumkin.",
                         estimatedMonthlySavings = saveTarget,
                     )
                 }
@@ -386,8 +386,8 @@ class AiAdvisor(private val context: Context) {
                 )
             } else {
                 AiRecommendation(
-                    title = "Qolgan $remainingDays kun uchun kunlik limit: ${fmt(dailyCap)} soʻm",
-                    detail = "Oy yakunini musbat balans va reja doirasida yakunlash uchun qolgan $remainingDays kun davomida kuniga oʻrtacha ${fmt(dailyCap)} soʻmdan koʻp sarflamaslikka harakat qiling.",
+                    title = "Qolgan $remainingDays kun uçun kunlik limit: ${fmt(dailyCap)} söm",
+                    detail = "Oy yakunini musbat balans va reja doirasida yakunlaş uçun qolgan $remainingDays kun davomida kuniga örtaça ${fmt(dailyCap)} sömdan köp sarflamaslikka harakat qiling.",
                 )
             }
         }
@@ -406,8 +406,8 @@ class AiAdvisor(private val context: Context) {
             )
         } else {
             AiRecommendation(
-                title = "Moliyaviy yostiqcha va maqsadlarga 10% ajrating",
-                detail = "Har bir kirimdan kamida 10% qismini «Jamgʻarmalar va Moliyaviy yostiqcha» boʻlimiga oʻtkazib boring — bu sizni kutilmagan qarz va xarajatlardan himoya qiladi.",
+                title = "Moliyaviy yostiqça va maqsadlarga 10% ajrating",
+                detail = "Har bir kirimdan kamida 10% qismini «Jamğarmalar va Moliyaviy yostiqça» bölimiga ötkazib boring — bu sizni kutilmagan qarz va xarajatlardan himoya qiladi.",
                 estimatedMonthlySavings = suggestedSave.takeIf { it > 0 },
             )
         }
@@ -428,15 +428,15 @@ class AiAdvisor(private val context: Context) {
             "rent" -> "Ijara / Uy"
             "health" -> "Salomatlik"
             "education" -> "Taʼlim"
-            "entertainment" -> "Koʻngilochar"
+            "entertainment" -> "Köngiloçar"
             "shopping" -> "Xaridlar"
             "loans" -> "Qarz / Kredit"
-            "other expense" -> "Boshqa xarajat"
-            "salary" -> "Ish haqi"
+            "other expense" -> "Boşqa xarajat"
+            "salary" -> "Iş haqi"
             "freelance" -> "Frilans"
             "business" -> "Biznes"
-            "gift" -> "Sovgʻa"
-            "other income" -> "Boshqa kirim"
+            "gift" -> "Sovğa"
+            "other income" -> "Boşqa kirim"
             else -> raw.replaceFirstChar { it.uppercase() }
         }
     }

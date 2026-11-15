@@ -85,14 +85,14 @@ private data class GoalPreset(
 )
 
 private val GOAL_PRESETS = listOf(
-    GoalPreset("Avtomobil olish", 80_000_000L, "car", 0xFF1976D2),
+    GoalPreset("Avtomobil oliş", 80_000_000L, "car", 0xFF1976D2),
     GoalPreset("Umra / Sayohat", 25_000_000L, "plane", 0xFF00897B),
     GoalPreset("Yangi telefon", 12_000_000L, "phone", 0xFF7B1FA2),
     GoalPreset("Uy taʼmiri", 40_000_000L, "home", 0xFFE65100),
-    GoalPreset("Oʻqish / Taʼlim", 15_000_000L, "study", 0xFF303F9F),
+    GoalPreset("Öqiş / Taʼlim", 15_000_000L, "study", 0xFF303F9F),
     GoalPreset("Noutbuk / Kompyuter", 18_000_000L, "laptop", 0xFF0288D1),
-    GoalPreset("Toʻy / Marosim", 50_000_000L, "heart", 0xFFC2185B),
-    GoalPreset("Biznes boshlash", 100_000_000L, "business", 0xFF2E7D32),
+    GoalPreset("Töy / Marosim", 50_000_000L, "heart", 0xFFC2185B),
+    GoalPreset("Biznes boşlaş", 100_000_000L, "business", 0xFF2E7D32),
 )
 
 private data class GoalIconOption(
@@ -145,7 +145,7 @@ fun SavingsGoalsScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Jamgʻarmalar & Maqsadlar", fontWeight = FontWeight.Bold) },
+                title = { Text("Jamğarmalar & Maqsadlar", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
@@ -200,7 +200,7 @@ fun SavingsGoalsScreen(
 
             if (state.goals.isEmpty()) {
                 item {
-                    EmptyState(text = "Hozircha maqsadlar yoʻq. + tugmasini bosib yangi maqsad qoʻshing!")
+                    EmptyState(text = "Hozirça maqsadlar yöq. + tugmasini bosib yangi maqsad qöşing!")
                 }
             } else {
                 items(state.goals, key = { it.id }) { goal ->
@@ -221,7 +221,7 @@ fun SavingsGoalsScreen(
     addingFundsGoal?.let { goal ->
         AlertDialog(
             onDismissRequest = { addingFundsGoal = null },
-            title = { Text("${goal.name} ga mablagʻ qoʻshish") },
+            title = { Text("${goal.name} ga mablağ qöşiş") },
             text = {
                 Column {
                     Text(
@@ -232,7 +232,7 @@ fun SavingsGoalsScreen(
                     OutlinedTextField(
                         value = fundsInput,
                         onValueChange = { fundsInput = it.filter { c -> c.isDigit() } },
-                        label = { Text("Qoʻshiladigan summa") },
+                        label = { Text("Qöşiladigan summa") },
                         placeholder = { Text("500 000") },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
@@ -241,7 +241,7 @@ fun SavingsGoalsScreen(
                         visualTransformation = ThousandsSeparatorVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        suffix = { Text("soʻm") },
+                        suffix = { Text("söm") },
                     )
                 }
             },
@@ -255,12 +255,12 @@ fun SavingsGoalsScreen(
                         addingFundsGoal = null
                     },
                 ) {
-                    Text("Qoʻshish")
+                    Text("Qöşiş")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { addingFundsGoal = null }) {
-                    Text("Bekor qilish")
+                    Text("Bekor qiliş")
                 }
             },
         )
@@ -279,7 +279,7 @@ fun SavingsGoalsScreen(
                         modifier = Modifier.size(24.dp),
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text("Moliyaviy yostiqchaga mablagʻ qoʻshish")
+                    Text("Moliyaviy yostiqçaga mablağ qöşiş")
                 }
             },
             text = {
@@ -301,7 +301,7 @@ fun SavingsGoalsScreen(
                         visualTransformation = ThousandsSeparatorVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        suffix = { Text("soʻm") },
+                        suffix = { Text("söm") },
                     )
                 }
             },
@@ -315,12 +315,12 @@ fun SavingsGoalsScreen(
                         addingEmergencyFunds = false
                     },
                 ) {
-                    Text("Saqlash")
+                    Text("Saqlaş")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { addingEmergencyFunds = false }) {
-                    Text("Bekor qilish")
+                    Text("Bekor qiliş")
                 }
             },
         )
@@ -375,7 +375,7 @@ private fun EmergencyFundCard(
                     }
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "Moliyaviy yostiqcha",
+                        text = "Moliyaviy yostiqça",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -386,7 +386,7 @@ private fun EmergencyFundCard(
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                 ) {
-                    Text("+ Qoʻshish", style = MaterialTheme.typography.labelSmall)
+                    Text("+ Qöşiş", style = MaterialTheme.typography.labelSmall)
                 }
             }
 
@@ -440,7 +440,7 @@ private fun EmergencyFundCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Har kirimdan ajratish:",
+                    text = "Har kirimdan ajratiş:",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
                 )
@@ -516,7 +516,7 @@ private fun SavingsGoalCard(
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    text = "Erishildi!",
+                                    text = "Erişildi!",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color(0xFF2E7D32),
                                     fontWeight = FontWeight.Bold,
@@ -555,7 +555,7 @@ private fun SavingsGoalCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = if (goal.isCompleted) "Toʻliq toʻplandi!" else "Qolgan: ${money(goal.remainingAmount)}",
+                    text = if (goal.isCompleted) "Töliq töplandi!" else "Qolgan: ${money(goal.remainingAmount)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -578,7 +578,7 @@ private fun SavingsGoalCard(
                         shape = RoundedCornerShape(10.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                     ) {
-                        Text("+ Mablagʻ qoʻshish", style = MaterialTheme.typography.labelSmall)
+                        Text("+ Mablağ qöşiş", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -600,7 +600,7 @@ private fun AddGoalDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Yangi maqsad qoʻshish", fontWeight = FontWeight.Bold) },
+        title = { Text("Yangi maqsad qöşiş", fontWeight = FontWeight.Bold) },
         text = {
             Column(
                 modifier = Modifier
@@ -653,7 +653,7 @@ private fun AddGoalDialog(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Maqsad nomi") },
-                    placeholder = { Text("Masalan: Avtomobil olish") },
+                    placeholder = { Text("Masalan: Avtomobil oliş") },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(
                         onNext = { focusManager.moveFocus(FocusDirection.Down) },
@@ -676,7 +676,7 @@ private fun AddGoalDialog(
                     ),
                     visualTransformation = ThousandsSeparatorVisualTransformation(),
                     singleLine = true,
-                    suffix = { Text("soʻm") },
+                    suffix = { Text("söm") },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -732,12 +732,12 @@ private fun AddGoalDialog(
                     }
                 },
             ) {
-                Text("Saqlash")
+                Text("Saqlaş")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Bekor qilish")
+                Text("Bekor qiliş")
             }
         },
     )

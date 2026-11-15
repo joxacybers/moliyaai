@@ -32,9 +32,11 @@ object SmsParser {
 
         // Ignore OTP / verification code SMS messages
         if (lowerBody.contains("tasdiqlash kodi") ||
+            lowerBody.contains("tasdiqlaş kodi") ||
             lowerBody.contains("kod podtverjdeniya") ||
             lowerBody.contains("verification code") ||
             lowerBody.contains("hech kimga bermang") ||
+            lowerBody.contains("heç kimga bermang") ||
             lowerBody.contains("nikomu ne soobshayte")
         ) {
             return null
@@ -44,8 +46,11 @@ object SmsParser {
         val isExpense = lowerBody.contains("to'landi") ||
             lowerBody.contains("tolandi") ||
             lowerBody.contains("toʻlandi") ||
+            lowerBody.contains("tölandi") ||
             lowerBody.contains("yechildi") ||
+            lowerBody.contains("yeçildi") ||
             lowerBody.contains("echib olindi") ||
+            lowerBody.contains("eçib olindi") ||
             lowerBody.contains("oplata") ||
             lowerBody.contains("spisanie") ||
             lowerBody.contains("pokupka") ||
@@ -55,24 +60,30 @@ object SmsParser {
             lowerBody.contains("to'lov") ||
             lowerBody.contains("tolov") ||
             lowerBody.contains("toʻlov") ||
+            lowerBody.contains("tölov") ||
             lowerBody.contains("sarflandi") ||
-            lowerBody.contains("chiqim")
+            lowerBody.contains("chiqim") ||
+            lowerBody.contains("çiqim")
 
         val isIncome = lowerBody.contains("popolnenie") ||
             lowerBody.contains("zachislenie") ||
             lowerBody.contains("tushdi") ||
+            lowerBody.contains("tuşdi") ||
             lowerBody.contains("kirim") ||
             lowerBody.contains("postuplenie") ||
             lowerBody.contains("sotuv") ||
             lowerBody.contains("sotildi") ||
             lowerBody.contains("savdo") ||
             lowerBody.contains("tushum") ||
+            lowerBody.contains("tuşum") ||
             lowerBody.contains("to'ldirildi") ||
             lowerBody.contains("toldirildi") ||
             lowerBody.contains("toʻldirildi") ||
+            lowerBody.contains("töldirildi") ||
             lowerBody.contains("perevod na kartu") ||
             lowerBody.contains("kartaga o'tkazma") ||
-            lowerBody.contains("kartaga otkazma")
+            lowerBody.contains("kartaga otkazma") ||
+            lowerBody.contains("kartaga ötkazma")
 
         if (!isExpense && !isIncome) {
             // Not a financial confirmation SMS
@@ -131,8 +142,8 @@ object SmsParser {
 
     private fun extractAmount(body: String): Long? {
         // Examples:
-        // "55 000.00 UZS", "55 000 UZS", "55000 UZS", "55 000 so'm", "55,000.00 sum"
-        val regex = Regex("""([0-9]{1,3}(?:[ \u00A0,][0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]+)\s*(?:uzs|so['`ʻ]?m|sum)""", RegexOption.IGNORE_CASE)
+        // "55 000.00 UZS", "55 000 UZS", "55000 UZS", "55 000 so'm", "55 000 söm", "55,000.00 sum"
+        val regex = Regex("""([0-9]{1,3}(?:[ \u00A0,][0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]+)\s*(?:uzs|so['`ʻ]?m|söm|sum)""", RegexOption.IGNORE_CASE)
         val match = regex.find(body) ?: return null
 
         val rawNumber = match.groupValues[1]
@@ -154,9 +165,9 @@ object SmsParser {
         // Patterns like:
         // "Terminal: KORZINKA", "Mesto: EVOS", "Joy: SAFIA", "Xizmat: Beeline", "v polzu EVOS", "Sotuv: ..."
         val explicitPatterns = listOf(
-            Regex("""(?:terminal|mesto|joy|xizmat|usluga|v polzu|punkt|do'kon|dokon|magazin|mijoz|otpravitel|kimdan)[:\s]+([^;,\.\n]+)""", RegexOption.IGNORE_CASE),
-            Regex("""(?:to'landi|tolandi|toʻlandi|yechildi|tushdi|sotildi)[\.\s]+([^;,\.\n0-9]+)""", RegexOption.IGNORE_CASE),
-            Regex("""HUMO:[\s0-9\.,UZS]+(?:to'landi|yechildi|tushdi)[\.\s]+([^;,\.\n]+)""", RegexOption.IGNORE_CASE),
+            Regex("""(?:terminal|mesto|joy|xizmat|usluga|v polzu|punkt|do'kon|dokon|dökon|magazin|mijoz|otpravitel|kimdan)[:\s]+([^;,\.\n]+)""", RegexOption.IGNORE_CASE),
+            Regex("""(?:to'landi|tolandi|toʻlandi|tölandi|yechildi|yeçildi|tushdi|tuşdi|sotildi)[\.\s]+([^;,\.\n0-9]+)""", RegexOption.IGNORE_CASE),
+            Regex("""HUMO:[\s0-9\.,UZS]+(?:to'landi|tölandi|yechildi|yeçildi|tushdi|tuşdi)[\.\s]+([^;,\.\n]+)""", RegexOption.IGNORE_CASE),
         )
 
         for (pattern in explicitPatterns) {
@@ -178,7 +189,7 @@ object SmsParser {
         // Fallback: Sender or generic
         return when {
             sender.isNotBlank() -> sender.uppercase(Locale.US)
-            type == TransactionType.INCOME -> "Karta tushumi"
+            type == TransactionType.INCOME -> "Karta tuşumi"
             else -> "Karta xaridi"
         }
     }

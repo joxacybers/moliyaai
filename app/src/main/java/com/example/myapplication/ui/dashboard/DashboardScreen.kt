@@ -115,7 +115,7 @@ fun DashboardScreen(
                         ) {
                             Icon(
                                 Icons.Default.Notifications,
-                                contentDescription = "Bildirishnomalar",
+                                contentDescription = "Bildirişnomalar",
                             )
                         }
                     }
@@ -172,13 +172,13 @@ fun DashboardScreen(
                             Spacer(Modifier.width(10.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "${state.pendingSmsDraftsCount} ta SMS qoralama tasdiqlash kutilmoqda",
+                                    text = "${state.pendingSmsDraftsCount} ta SMS qoralama tasdiqlaş kutilmoqda",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 )
                                 Text(
-                                    text = "AI toifaga ajratdi — koʻrish va amallarga qoʻshish uchun bosing",
+                                    text = "AI toifaga ajratdi — köriş va amallarga qöşiş uçun bosing",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                                 )
@@ -655,14 +655,14 @@ private fun SavingsBannerCard(
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = "Jamgʻarmalar & Moliyaviy yostiqcha",
+                    text = "Jamğarmalar & Moliyaviy yostiqça",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = "Maqsadlar uchun pul toʻplash va xavfsizlik zaxirasi",
+                    text = "Maqsadlar uçun pul töplaş va xavfsizlik zaxirasi",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                 )

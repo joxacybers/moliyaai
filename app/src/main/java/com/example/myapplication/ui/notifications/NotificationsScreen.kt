@@ -146,10 +146,10 @@ fun NotificationsScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Bildirishnomalar va Qoralamalar", fontWeight = FontWeight.Bold)
+                        Text("Bildirişnomalar va Qoralamalar", fontWeight = FontWeight.Bold)
                         if (state.pendingDraftsCount > 0) {
                             Text(
-                                text = "${state.pendingDraftsCount} ta SMS qoralama tasdiqlash kutilmoqda",
+                                text = "${state.pendingDraftsCount} ta SMS qoralama tasdiqlaş kutilmoqda",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                             )
@@ -166,7 +166,7 @@ fun NotificationsScreen(
                         IconButton(onClick = viewModel::markAllAsRead) {
                             Icon(
                                 Icons.Default.Check,
-                                contentDescription = "Barchasini oʻqilgan qilish",
+                                contentDescription = "Barçasini öqilgan qiliş",
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                         }
@@ -175,7 +175,7 @@ fun NotificationsScreen(
                         IconButton(onClick = { showClearConfirm = true }) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = "Tozalash",
+                                contentDescription = "Tozalaş",
                                 tint = MaterialTheme.colorScheme.outline,
                             )
                         }
@@ -227,7 +227,7 @@ fun NotificationsScreen(
                                     fontWeight = FontWeight.Bold,
                                 )
                                 Text(
-                                    text = "Bank va toʻlov SMS xabarlari AI orqali avtomatik toifalarga ajratilib, qoralama sifatida shu yerda saqlanadi.",
+                                    text = "Bank va tölov SMS xabarlari AI orqali avtomatik toifalarga ajratilib, qoralama sifatida şu yerda saqlanadi.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -262,14 +262,14 @@ fun NotificationsScreen(
                                     Spacer(Modifier.width(6.dp))
                                     Text("Tahlil qilinmoqda...")
                                 } else {
-                                    Text("SMS xabarlarni tekshirish")
+                                    Text("SMS xabarlarni tekşiriş")
                                 }
                             }
                             OutlinedButton(
                                 onClick = { showTestSmsDialog = true },
                                 enabled = !state.isScanningSms,
                             ) {
-                                Text("SMS matn kiritish")
+                                Text("SMS matn kiritiş")
                             }
                         }
                     }
@@ -285,7 +285,7 @@ fun NotificationsScreen(
                     FilterChip(
                         selected = state.filter == NotificationFilter.ALL,
                         onClick = { viewModel.setFilter(NotificationFilter.ALL) },
-                        label = { Text("Barchasi") },
+                        label = { Text("Barçasi") },
                     )
                     FilterChip(
                         selected = state.filter == NotificationFilter.SMS_DRAFTS,
@@ -306,7 +306,7 @@ fun NotificationsScreen(
             if (state.notifications.isEmpty()) {
                 item {
                     EmptyState(
-                        text = "Hozircha bildirishnomalar yoʻq.\nKelgan xarid/sotuv SMS qoralamalari, byudjet ogohlantirishlari va qarz eslatmalari shu yerda saqlanadi.",
+                        text = "Hozirça bildirişnomalar yöq.\nKelgan xarid/sotuv SMS qoralamalari, byudjet ogohlantirişlari va qarz eslatmalari şu yerda saqlanadi.",
                     )
                 }
             } else {
@@ -370,8 +370,8 @@ fun NotificationsScreen(
     if (showClearConfirm) {
         AlertDialog(
             onDismissRequest = { showClearConfirm = false },
-            title = { Text("Bildirishnomalarni tozalash", fontWeight = FontWeight.Bold) },
-            text = { Text("Barcha saqlangan bildirishnomalar va qoralamalarni oʻchirishni xohlaysizmi?") },
+            title = { Text("Bildirişnomalarni tozalaş", fontWeight = FontWeight.Bold) },
+            text = { Text("Barça saqlangan bildirişnomalar va qoralamalarni öçirişni xohlaysizmi?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -473,7 +473,7 @@ private fun NotificationItemCard(
                 ) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Oʻchirish",
+                        contentDescription = "Öçiriş",
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(18.dp),
                     )
@@ -519,9 +519,9 @@ private fun NotificationItemCard(
                             ) {
                                 Text(
                                     text = if (item.isActionCompleted) {
-                                        "✅ Tasdiqlangan va qoʻshilgan"
+                                        "✅ Tasdiqlangan va qöşilgan"
                                     } else {
-                                        "🤖 AI Qoralama • Tekshiring"
+                                        "🤖 AI Qoralama • Tekşiring"
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
@@ -532,7 +532,7 @@ private fun NotificationItemCard(
 
                             Text(
                                 text = (if (txType == TransactionType.INCOME) "+" else "−") +
-                                    "${formatAmount(item.draftAmount)} soʻm",
+                                    "${formatAmount(item.draftAmount)} söm",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = typeColor,
@@ -549,7 +549,7 @@ private fun NotificationItemCard(
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                text = "${if (txType == TransactionType.INCOME) "Kirim / Sotuv" else "Chiqim / Xarid"} • ${stringResource(account.labelRes)}",
+                                text = "${if (txType == TransactionType.INCOME) "Kirim / Sotuv" else "Çiqim / Xarid"} • ${stringResource(account.labelRes)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -589,7 +589,7 @@ private fun NotificationItemCard(
                         ) {
                             Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Tahrirlash")
+                            Text("Tahrirlaş")
                         }
                         Button(
                             onClick = onConfirmDraft,
@@ -597,7 +597,7 @@ private fun NotificationItemCard(
                         ) {
                             Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Tasdiqlash")
+                            Text("Tasdiqlaş")
                         }
                     }
                 }
@@ -615,7 +615,7 @@ private fun NotificationItemCard(
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text("Yostiqchaga qoʻshish (+${formatAmount(item.draftAmount)} soʻm)")
+                    Text("Yostiqçaga qöşiş (+${formatAmount(item.draftAmount)} söm)")
                 }
             }
         }
@@ -655,7 +655,7 @@ private fun EditSmsDraftDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("SMS Qoralamani tekshirish", fontWeight = FontWeight.Bold) },
+        title = { Text("SMS Qoralamani tekşiriş", fontWeight = FontWeight.Bold) },
         text = {
             Column(
                 modifier = Modifier
@@ -686,7 +686,7 @@ private fun EditSmsDraftDialog(
                             category = Category.forType(TransactionType.EXPENSE).first()
                             selectedCustomCat = null
                         },
-                        label = { Text("Chiqim (Xarid)") },
+                        label = { Text("Çiqim (Xarid)") },
                     )
                     FilterChip(
                         selected = type == TransactionType.INCOME,
@@ -704,7 +704,7 @@ private fun EditSmsDraftDialog(
                     value = amountText,
                     onValueChange = { amountText = it.filter { ch -> ch.isDigit() } },
                     label = { Text("Summa") },
-                    suffix = { Text("soʻm") },
+                    suffix = { Text("söm") },
                     visualTransformation = ThousandsSeparatorVisualTransformation(),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number,
@@ -718,7 +718,7 @@ private fun EditSmsDraftDialog(
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
-                    label = { Text("Doʻkon / Manba / Izoh") },
+                    label = { Text("Dökon / Manba / Izoh") },
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
                         imeAction = ImeAction.Done,
@@ -777,7 +777,7 @@ private fun EditSmsDraftDialog(
                     }
                 },
             ) {
-                Text("Tasdiqlash va Qoʻshish")
+                Text("Tasdiqlaş va Qöşiş")
             }
         },
         dismissButton = {
@@ -793,7 +793,7 @@ private fun EditSmsDraftDialog(
                         }
                     },
                 ) {
-                    Text("Saqlash")
+                    Text("Saqlaş")
                 }
             }
         },
@@ -807,16 +807,16 @@ private fun ManualSmsAnalyzeDialog(
 ) {
     var sender by remember { mutableStateOf("HUMO") }
     var smsText by remember {
-        mutableStateOf("HUMO: 85 000.00 UZS to'landi. KORZINKA SUPERMARKET. Balans: 1 450 000.00 UZS")
+        mutableStateOf("HUMO: 85 000.00 UZS tölandi. KORZINKA SUPERMARKET. Balans: 1 450 000.00 UZS")
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("SMS matnini AI orqali tahlil qilish", fontWeight = FontWeight.Bold) },
+        title = { Text("SMS matnini AI orqali tahlil qiliş", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = "Bank yoki toʻlov tizimidan kelgan xarid/sotuv SMS xabarini kiriting yoki namunani tanlang:",
+                    text = "Bank yoki tölov tizimidan kelgan xarid/sotuv SMS xabarini kiriting yoki namunani tanlang:",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -826,7 +826,7 @@ private fun ManualSmsAnalyzeDialog(
                         selected = sender == "HUMO",
                         onClick = {
                             sender = "HUMO"
-                            smsText = "HUMO: 85 000.00 UZS to'landi. KORZINKA SUPERMARKET. Balans: 1 450 000.00 UZS"
+                            smsText = "HUMO: 85 000.00 UZS tölandi. KORZINKA SUPERMARKET. Balans: 1 450 000.00 UZS"
                         },
                         label = { Text("Xarid (Korzinka)") },
                     )
@@ -834,7 +834,7 @@ private fun ManualSmsAnalyzeDialog(
                         selected = sender == "CLICK",
                         onClick = {
                             sender = "CLICK"
-                            smsText = "Click: Kartaga 450 000 so'm tushdi. Sotuv: Online do'kon buyurtma to'lovi. Balans: 2 100 000 so'm"
+                            smsText = "Click: Kartaga 450 000 söm tuşdi. Sotuv: Online dökon buyurtma tölovi. Balans: 2 100 000 söm"
                         },
                         label = { Text("Sotuv (Kirim)") },
                     )
@@ -843,7 +843,7 @@ private fun ManualSmsAnalyzeDialog(
                 OutlinedTextField(
                     value = sender,
                     onValueChange = { sender = it },
-                    label = { Text("Yuboruvchi (Masalan: HUMO, CLICK)") },
+                    label = { Text("Yuboruvçi (Masalan: HUMO, CLICK)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -862,7 +862,7 @@ private fun ManualSmsAnalyzeDialog(
             Button(
                 onClick = { if (smsText.isNotBlank()) onAnalyze(sender, smsText) },
             ) {
-                Text("AI orqali qoralamaga saqlash")
+                Text("AI orqali qoralamaga saqlaş")
             }
         },
         dismissButton = {

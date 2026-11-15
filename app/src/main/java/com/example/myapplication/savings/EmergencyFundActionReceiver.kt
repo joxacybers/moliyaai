@@ -37,7 +37,7 @@ class EmergencyFundActionReceiver : BroadcastReceiver() {
                     launch(Dispatchers.Main) {
                         Toast.makeText(
                             context,
-                            "🛡️ ${formatAmount(amount)} soʻm moliyaviy yostiqchaga qoʻshildi",
+                            "🛡️ ${formatAmount(amount)} söm moliyaviy yostiqçaga qöşildi",
                             Toast.LENGTH_LONG,
                         ).show()
                     }

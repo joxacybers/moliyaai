@@ -201,9 +201,9 @@ fun SettingsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // 1. Moliya va Avtomatlashtirish (Budget, Custom Categories, SMS Auto-Detect)
+            // 1. Moliya va Avtomatlaştiriş (Budget, Custom Categories, SMS Auto-Detect)
             item {
-                SectionTitle("Moliya va Avtomatlashtirish")
+                SectionTitle("Moliya va Avtomatlaştiriş")
                 Spacer(Modifier.height(8.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -216,9 +216,9 @@ fun SettingsScreen(
                             iconTint = Color(0xFF1E88E5),
                             title = stringResource(R.string.budget_title),
                             subtitle = if (budgetVal > 0L) {
-                                "${formatAmount(budgetVal)} soʻm / oy"
+                                "${formatAmount(budgetVal)} söm / oy"
                             } else {
-                                "Belgilanmagan — oʻrnatish uchun bosing"
+                                "Belgilanmagan — örnatiş uçun bosing"
                             },
                             onClick = { showBudgetDialog = true },
                             trailing = {
@@ -241,9 +241,9 @@ fun SettingsScreen(
                             iconTint = Color(0xFF8E24AA),
                             title = "Maxsus toifalar (Kategoriyalar)",
                             subtitle = if (state.customCategories.isEmpty()) {
-                                "Shaxsiy kirim va chiqim toifalarini qoʻshish"
+                                "Şaxsiy kirim va çiqim toifalarini qöşiş"
                             } else {
-                                "${state.customCategories.size} ta shaxsiy toifa mavjud"
+                                "${state.customCategories.size} ta şaxsiy toifa mavjud"
                             },
                             onClick = { showManageCategoriesDialog = true },
                             trailing = {
@@ -254,7 +254,7 @@ fun SettingsScreen(
                                 ) {
                                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Qoʻshish", style = MaterialTheme.typography.labelMedium)
+                                    Text("Qöşiş", style = MaterialTheme.typography.labelMedium)
                                 }
                             },
                         )
@@ -268,7 +268,7 @@ fun SettingsScreen(
                             iconRes = R.drawable.ic_auto_awesome,
                             iconTint = Color(0xFF00897B),
                             title = stringResource(R.string.sms_auto_detect_title),
-                            subtitle = "Xarid va sotuv SMS xabarlarini AI qoralamaga saqlash",
+                            subtitle = "Xarid va sotuv SMS xabarlarini AI qoralamaga saqlaş",
                             onClick = null,
                             trailing = {
                                 Switch(
@@ -426,7 +426,7 @@ fun SettingsScreen(
                                         modifier = Modifier.height(32.dp),
                                     ) {
                                         Text(
-                                            text = if (state.pinCode.isNotEmpty()) "Oʻzgartirish" else "Oʻrnatish",
+                                            text = if (state.pinCode.isNotEmpty()) "Özgartiriş" else "Örnatiş",
                                             style = MaterialTheme.typography.labelMedium,
                                         )
                                     }
@@ -437,7 +437,7 @@ fun SettingsScreen(
                                             modifier = Modifier.height(32.dp),
                                         ) {
                                             Text(
-                                                text = "Oʻchirish",
+                                                text = "Öçiriş",
                                                 style = MaterialTheme.typography.labelMedium,
                                                 color = MaterialTheme.colorScheme.error,
                                             )
@@ -483,7 +483,7 @@ fun SettingsScreen(
                             iconRes = R.drawable.ic_savings,
                             iconTint = Color(0xFF43A047),
                             title = stringResource(R.string.backup_export),
-                            subtitle = "Barcha amallar va obunalarni JSON faylga saqlash",
+                            subtitle = "Barça amallar va obunalarni JSON faylga saqlaş",
                             onClick = {
                                 val filename = "moliya-backup-${LocalDate.now()}.json"
                                 backupExportLauncher.launch(filename)
@@ -499,7 +499,7 @@ fun SettingsScreen(
                             iconRes = R.drawable.ic_build,
                             iconTint = Color(0xFF1E88E5),
                             title = stringResource(R.string.backup_restore),
-                            subtitle = "Oldin saqlangan JSON zaxira faylidan tiklash",
+                            subtitle = "Oldin saqlangan JSON zaxira faylidan tiklaş",
                             onClick = { backupImportLauncher.launch(arrayOf("application/json", "*/*")) },
                         )
 
@@ -512,7 +512,7 @@ fun SettingsScreen(
                             iconRes = R.drawable.ic_bar_chart,
                             iconTint = Color(0xFFFB8C00),
                             title = stringResource(R.string.export_csv),
-                            subtitle = "Excel va Google Sheets uchun jadval koʻrinishida saqlash",
+                            subtitle = "Excel va Google Sheets uçun jadval körinişida saqlaş",
                             onClick = {
                                 val filename = "moliya-${LocalDate.now()}.csv"
                                 csvExportLauncher.launch(filename)
@@ -528,7 +528,7 @@ fun SettingsScreen(
                             iconRes = R.drawable.ic_trophy,
                             iconTint = Color(0xFF8E24AA),
                             title = stringResource(R.string.demo_data),
-                            subtitle = "Ilova imkoniyatlarini koʻrish uchun namuna amallar qoʻshish",
+                            subtitle = "Ilova imkoniyatlarini köriş uçun namuna amallar qöşiş",
                             onClick = viewModel::loadDemoData,
                         )
 
@@ -541,7 +541,7 @@ fun SettingsScreen(
                             iconRes = R.drawable.ic_cat_loans,
                             iconTint = MaterialTheme.colorScheme.error,
                             title = stringResource(R.string.clear_data),
-                            subtitle = "Barcha kiritilgan amallar va tarixni oʻchirish",
+                            subtitle = "Barça kiritilgan amallar va tarixni öçiriş",
                             titleColor = MaterialTheme.colorScheme.error,
                             onClick = { showClearConfirm = true },
                         )
@@ -654,7 +654,7 @@ fun SettingsScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = "Bir oylik umumiy xarajatlar chegarasini kiriting (0 — cheklovsiz):",
+                        text = "Bir oylik umumiy xarajatlar çegarasini kiriting (0 — çeklovsiz):",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -712,7 +712,7 @@ fun SettingsScreen(
                 ) {
                     if (state.customCategories.isEmpty()) {
                         Text(
-                            text = "Hozircha shaxsiy toifalar qoʻshilmagan. Pastdagi tugma orqali yangi toifa va ikonka tanlang.",
+                            text = "Hozirça şaxsiy toifalar qöşilmagan. Pastdagi tugma orqali yangi toifa va ikonka tanlang.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -751,7 +751,7 @@ fun SettingsScreen(
                                             fontWeight = FontWeight.SemiBold,
                                         )
                                         Text(
-                                            text = if (cat.type == TransactionType.EXPENSE) "Chiqim" else "Kirim",
+                                            text = if (cat.type == TransactionType.EXPENSE) "Çiqim" else "Kirim",
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -759,7 +759,7 @@ fun SettingsScreen(
                                     IconButton(onClick = { viewModel.deleteCustomCategory(cat.id) }) {
                                         Icon(
                                             Icons.Default.Delete,
-                                            contentDescription = "Oʻchirish",
+                                            contentDescription = "Öçiriş",
                                             tint = MaterialTheme.colorScheme.error,
                                         )
                                     }
@@ -774,13 +774,13 @@ fun SettingsScreen(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Yangi toifa qoʻshish")
+                        Text("Yangi toifa qöşiş")
                     }
                 }
             },
             confirmButton = {
                 TextButton(onClick = { showManageCategoriesDialog = false }) {
-                    Text("Yopish")
+                    Text("Yopiş")
                 }
             },
         )

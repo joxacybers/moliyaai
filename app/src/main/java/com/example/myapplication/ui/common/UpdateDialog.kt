@@ -70,7 +70,7 @@ fun UpdateAvailableDialog(
 
                 if (release.changelog.isNotBlank()) {
                     Text(
-                        text = "Oʻzgarishlar:",
+                        text = "Özgarişlar:",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -82,7 +82,7 @@ fun UpdateAvailableDialog(
                     )
                 } else {
                     Text(
-                        text = "Ilovaning yangilangan va takomillashtirilgan versiyasi mavjud.",
+                        text = "Ilovaning yangilangan va takomillaştirilgan versiyasi mavjud.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -120,7 +120,7 @@ fun UpdateAvailableDialog(
                 onClick = onConfirmUpdate,
                 enabled = !isDownloading,
             ) {
-                Text(if (isDownloading) "Yuklanmoqda..." else "Yangilash")
+                Text(if (isDownloading) "Yuklanmoqda..." else "Yangilaş")
             }
         },
         dismissButton = {

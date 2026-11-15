@@ -47,7 +47,7 @@ class SmsExpenseActionReceiver : BroadcastReceiver() {
 
         if (intent.action == ACTION_CONFIRM) {
             val amount = intent.getLongExtra(EXTRA_AMOUNT, 0L)
-            val merchant = intent.getStringExtra(EXTRA_MERCHANT) ?: "Karta toʻlovi"
+            val merchant = intent.getStringExtra(EXTRA_MERCHANT) ?: "Karta tölovi"
             val categoryName = intent.getStringExtra(EXTRA_CATEGORY) ?: Category.FOOD.name
             val customCatName = intent.getStringExtra(EXTRA_CUSTOM_CATEGORY_NAME).orEmpty()
             val customCatIcon = intent.getStringExtra(EXTRA_CUSTOM_CATEGORY_ICON).orEmpty()
@@ -111,7 +111,7 @@ class SmsExpenseActionReceiver : BroadcastReceiver() {
                     launch(Dispatchers.Main) {
                         Toast.makeText(
                             context,
-                            "✅ $merchant: ${formatAmount(amount)} soʻm amallarga qoʻshildi",
+                            "✅ $merchant: ${formatAmount(amount)} söm amallarga qöşildi",
                             Toast.LENGTH_LONG,
                         ).show()
                     }

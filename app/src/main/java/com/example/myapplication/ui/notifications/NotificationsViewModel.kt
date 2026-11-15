@@ -120,7 +120,7 @@ class NotificationsViewModel(
     fun clearAll() {
         viewModelScope.launch {
             notificationRepo.deleteAll()
-            _events.emit("Barcha bildirishnomalar tozalandi")
+            _events.emit("Barça bildirişnomalar tozalandi")
         }
     }
 
@@ -222,7 +222,7 @@ class NotificationsViewModel(
                 } catch (_: Exception) {}
             }
 
-            _events.emit("✅ $note (${formatAmount(amount)} soʻm) amallarga qoʻshildi!")
+            _events.emit("✅ $note (${formatAmount(amount)} söm) amallarga qöşildi!")
         }
     }
 
@@ -238,11 +238,11 @@ class NotificationsViewModel(
         viewModelScope.launch {
             val catLabel = customCategory?.name ?: appContext.getString(category.labelRes)
             val title = if (type == TransactionType.INCOME) {
-                "💰 Yangi sotuv / tushum: ${formatAmount(amount)} soʻm"
+                "💰 Yangi sotuv / tuşum: ${formatAmount(amount)} söm"
             } else {
-                "💳 Yangi xarid: ${formatAmount(amount)} soʻm"
+                "💳 Yangi xarid: ${formatAmount(amount)} söm"
             }
-            val message = "$note • Toifa: $catLabel (Qoralama tahrirlandi — tasdiqlashga tayyor)"
+            val message = "$note • Toifa: $catLabel (Qoralama tahrirlandi — tasdiqlaşga tayyor)"
 
             notificationRepo.update(
                 notification.copy(
@@ -269,7 +269,7 @@ class NotificationsViewModel(
         viewModelScope.launch {
             savingsRepo.addEmergencyFunds(amount)
             notificationRepo.markActionCompleted(notification.id)
-            _events.emit("🛡️ ${formatAmount(amount)} soʻm moliyaviy yostiqchaga qoʻshildi!")
+            _events.emit("🛡️ ${formatAmount(amount)} söm moliyaviy yostiqçaga qöşildi!")
         }
     }
 
@@ -282,7 +282,7 @@ class NotificationsViewModel(
                 val customApiKey = settingsRepo.customOpenAiKey.first()
                 val initial = SmsParser.parse(sender.ifBlank { "BANK" }, smsText, customCategories)
                 if (initial == null) {
-                    _events.emit("⚠️ Ushbu SMS matnida xarid yoki sotuv summasi (UZS/soʻm) topilmadi")
+                    _events.emit("⚠️ Uşbu SMS matnida xarid yoki sotuv summasi (UZS/söm) topilmadi")
                     return@launch
                 }
                 val enriched = aiAdvisor.analyzeSmsForDraft(
@@ -357,11 +357,11 @@ class NotificationsViewModel(
                     }
                     val isIncome = enriched.type == TransactionType.INCOME
                     val title = if (isIncome) {
-                        "💰 Yangi sotuv / tushum: ${formatAmount(enriched.amount)} soʻm"
+                        "💰 Yangi sotuv / tuşum: ${formatAmount(enriched.amount)} söm"
                     } else {
-                        "💳 Yangi xarid: ${formatAmount(enriched.amount)} soʻm"
+                        "💳 Yangi xarid: ${formatAmount(enriched.amount)} söm"
                     }
-                    val message = "${enriched.merchant} • Toifa: $catLabel (AI qoralama tayyor — tekshirib tasdiqlang)"
+                    val message = "${enriched.merchant} • Toifa: $catLabel (AI qoralama tayyor — tekşirib tasdiqlang)"
 
                     notificationRepo.insert(
                         AppNotificationEntity(
@@ -390,9 +390,9 @@ class NotificationsViewModel(
                     _events.emit("Yangi xarid yoki sotuv SMS xabarlari topilmadi")
                 }
             } catch (_: SecurityException) {
-                _events.emit("SMS xabarlarni oʻqish uchun ruxsat kerak")
+                _events.emit("SMS xabarlarni öqiş uçun ruxsat kerak")
             } catch (_: Exception) {
-                _events.emit("SMS xabarlarni skanerlashda xatolik yuz berdi")
+                _events.emit("SMS xabarlarni skanerlaşda xatolik yuz berdi")
             } finally {
                 isScanningFlow.value = false
             }

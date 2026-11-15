@@ -289,11 +289,11 @@ fun DebtsScreen(
                         visualTransformation = ThousandsSeparatorVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        suffix = { Text("soʻm") },
+                        suffix = { Text("söm") },
                     )
                     Spacer(Modifier.height(8.dp))
                     TextButton(onClick = { paymentAmountInput = debt.remainingAmount.toString() }) {
-                        Text("Toʻliq qoplash (${money(debt.remainingAmount)})")
+                        Text("Töliq qoplaş (${money(debt.remainingAmount)})")
                     }
                 }
             },
@@ -521,7 +521,7 @@ private fun DebtCard(
                     if (debt.dueDateEpochMillis != null) {
                         val dueLocalDate = Instant.ofEpochMilli(debt.dueDateEpochMillis).atZone(ZoneId.systemDefault()).toLocalDate()
                         Text(
-                            text = if (isOverdue) "Muddat oʻtdi: ${formatDayMonth(dueLocalDate)}" else "Muddat: ${formatDayMonth(dueLocalDate)}",
+                            text = if (isOverdue) "Muddat ötdi: ${formatDayMonth(dueLocalDate)}" else "Muddat: ${formatDayMonth(dueLocalDate)}",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = if (isOverdue) FontWeight.Bold else FontWeight.Normal,
                             color = if (isOverdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -568,7 +568,7 @@ private fun DebtCard(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = if (debt.isSettled) "Qayta ochish" else stringResource(R.string.debt_settle_action),
+                        text = if (debt.isSettled) "Qayta oçiş" else stringResource(R.string.debt_settle_action),
                         style = MaterialTheme.typography.labelSmall,
                     )
                 }
@@ -696,7 +696,7 @@ private fun AddDebtDialog(
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text("Telefon kontaktlaridan tanlash")
+                    Text("Telefon kontaktlaridan tanlaş")
                 }
 
                 OutlinedTextField(
@@ -707,7 +707,7 @@ private fun AddDebtDialog(
                         IconButton(onClick = { openContactSelector() }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_contacts),
-                                contentDescription = "Kontaktdan tanlash",
+                                contentDescription = "Kontaktdan tanlaş",
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                         }
@@ -734,7 +734,7 @@ private fun AddDebtDialog(
                     ),
                     visualTransformation = ThousandsSeparatorVisualTransformation(),
                     singleLine = true,
-                    suffix = { Text("soʻm") },
+                    suffix = { Text("söm") },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -840,7 +840,7 @@ private fun AddDebtDialog(
                         showDatePicker = false
                     },
                 ) {
-                    Text("Tanlash")
+                    Text("Tanlaş")
                 }
             },
             dismissButton = {
@@ -850,7 +850,7 @@ private fun AddDebtDialog(
                         showDatePicker = false
                     },
                 ) {
-                    Text("Tozalash")
+                    Text("Tozalaş")
                 }
             },
         ) {
@@ -891,7 +891,7 @@ private fun ContactPickerDialog(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Ism yoki raqam boʻyicha qidirish...") },
+                    placeholder = { Text("Ism yoki raqam böyiça qidiriş...") },
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = null)
                     },
@@ -914,13 +914,13 @@ private fun ContactPickerDialog(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
-                            text = if (contacts.isEmpty()) "Kontaktlar topilmadi" else "Qidiruv boʻyicha kontakt topilmadi",
+                            text = if (contacts.isEmpty()) "Kontaktlar topilmadi" else "Qidiruv böyiça kontakt topilmadi",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(Modifier.height(8.dp))
                         TextButton(onClick = onOpenSystemPicker) {
-                            Text("Tizim kontaktlar oynasidan tanlash")
+                            Text("Tizim kontaktlar oynasidan tanlaş")
                         }
                     }
                 } else {

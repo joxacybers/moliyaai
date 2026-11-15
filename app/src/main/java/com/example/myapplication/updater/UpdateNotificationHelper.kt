@@ -18,8 +18,8 @@ object UpdateNotificationHelper {
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Ilova yangilanishlari"
-            val descriptionText = "Yangi versiya chiqqanda xabar beradi"
+            val name = "Ilova yangilanişlari"
+            val descriptionText = "Yangi versiya çiqqanda xabar beradi"
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
@@ -48,13 +48,13 @@ object UpdateNotificationHelper {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Yangi versiya mavjud: ${release.tagName}")
-            .setContentText("Moliya AI ilovasini yangilash uchun bosing")
+            .setContentText("Moliya AI ilovasini yangilaş uçun bosing")
             .setStyle(
                 NotificationCompat.BigTextStyle().bigText(
                     if (release.changelog.isNotBlank()) {
-                        "Yangi versiya: ${release.tagName}\n\nOʻzgarishlar:\n${release.changelog}"
+                        "Yangi versiya: ${release.tagName}\n\nÖzgarişlar:\n${release.changelog}"
                     } else {
-                        "Moliya AI ilovasining yangi ${release.tagName} versiyasi chiqdi. Yangilash uchun bosing."
+                        "Moliya AI ilovasining yangi ${release.tagName} versiyasi çiqdi. Yangilaş uçun bosing."
                     },
                 ),
             )

@@ -197,7 +197,7 @@ fun AddCustomCategoryDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("Yangi toifa qoʻshish", fontWeight = FontWeight.Bold)
+            Text("Yangi toifa qöşiş", fontWeight = FontWeight.Bold)
         },
         text = {
             Column(
@@ -247,7 +247,7 @@ fun AddCustomCategoryDialog(
                         nameError = false
                     },
                     label = { Text("Toifa nomi") },
-                    placeholder = { Text("Masalan: Kafe, Yonilgʻi, Ehson...") },
+                    placeholder = { Text("Masalan: Kafe, Yonilği, Ehson...") },
                     isError = nameError,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(

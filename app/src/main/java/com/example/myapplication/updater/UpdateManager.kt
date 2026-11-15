@@ -52,10 +52,10 @@ class UpdateManager(
 
             if (conn.responseCode == 404) {
                 return@withContext UpdateCheckResult.Error(
-                    "Reliz topilmadi (404). Repozitoriyni GitHub'da 'Public' qiling yoki Releases bo'limida APK mavjudligini tekshiring.",
+                    "Reliz topilmadi (404). Repozitoriyni GitHub'da 'Public' qiling yoki Releases bölimida APK mavjudligini tekşiring.",
                 )
             } else if (conn.responseCode == 403) {
-                return@withContext UpdateCheckResult.Error("GitHub API limiti tugadi (403). Birozdan keyin urinib koʻring.")
+                return@withContext UpdateCheckResult.Error("GitHub API limiti tugadi (403). Birozdan keyin urinib köring.")
             } else if (conn.responseCode != 200) {
                 return@withContext UpdateCheckResult.Error("GitHub server xatosi (HTTP ${conn.responseCode})")
             }
