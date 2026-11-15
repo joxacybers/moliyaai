@@ -1,10 +1,15 @@
 package com.example.myapplication.ui.savings
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,14 +21,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -44,17 +51,21 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -79,7 +90,39 @@ private val GOAL_PRESETS = listOf(
     GoalPreset("Yangi telefon", 12_000_000L, "phone", 0xFF7B1FA2),
     GoalPreset("Uy taʼmiri", 40_000_000L, "home", 0xFFE65100),
     GoalPreset("Oʻqish / Taʼlim", 15_000_000L, "study", 0xFF303F9F),
+    GoalPreset("Noutbuk / Kompyuter", 18_000_000L, "laptop", 0xFF0288D1),
+    GoalPreset("Toʻy / Marosim", 50_000_000L, "heart", 0xFFC2185B),
+    GoalPreset("Biznes boshlash", 100_000_000L, "business", 0xFF2E7D32),
 )
+
+private data class GoalIconOption(
+    val key: String,
+    @DrawableRes val iconRes: Int,
+    val defaultColorHex: Long,
+)
+
+private val GOAL_ICON_OPTIONS = listOf(
+    GoalIconOption("car", R.drawable.ic_cat_transport, 0xFF1976D2),
+    GoalIconOption("plane", R.drawable.ic_plane, 0xFF00897B),
+    GoalIconOption("phone", R.drawable.ic_phone_android, 0xFF7B1FA2),
+    GoalIconOption("home", R.drawable.ic_cat_rent, 0xFFE65100),
+    GoalIconOption("study", R.drawable.ic_cat_education, 0xFF303F9F),
+    GoalIconOption("laptop", R.drawable.ic_cat_freelance, 0xFF0288D1),
+    GoalIconOption("business", R.drawable.ic_cat_business, 0xFF2E7D32),
+    GoalIconOption("gift", R.drawable.ic_cat_gift, 0xFFE91E63),
+    GoalIconOption("heart", R.drawable.ic_heart, 0xFFC2185B),
+    GoalIconOption("diamond", R.drawable.ic_diamond, 0xFFF57F17),
+    GoalIconOption("shopping", R.drawable.ic_cat_shopping, 0xFF689F38),
+    GoalIconOption("health", R.drawable.ic_cat_health, 0xFFD32F2F),
+    GoalIconOption("fitness", R.drawable.ic_fitness, 0xFF0097A7),
+    GoalIconOption("child", R.drawable.ic_child, 0xFF5E35B1),
+    GoalIconOption("build", R.drawable.ic_build, 0xFF5D4037),
+    GoalIconOption("general", R.drawable.ic_trophy, 0xFF1E88E5),
+)
+
+@DrawableRes
+private fun goalIconRes(iconKey: String): Int =
+    GOAL_ICON_OPTIONS.firstOrNull { it.key == iconKey }?.iconRes ?: R.drawable.ic_trophy
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -191,7 +234,10 @@ fun SavingsGoalsScreen(
                         onValueChange = { fundsInput = it.filter { c -> c.isDigit() } },
                         label = { Text("Qoʻshiladigan summa") },
                         placeholder = { Text("500 000") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
                         visualTransformation = ThousandsSeparatorVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -224,7 +270,18 @@ fun SavingsGoalsScreen(
     if (addingEmergencyFunds) {
         AlertDialog(
             onDismissRequest = { addingEmergencyFunds = false },
-            title = { Text("🛡️ Moliyaviy yostiqchaga mablagʻ qoʻshish") },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_shield),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Moliyaviy yostiqchaga mablagʻ qoʻshish")
+                }
+            },
             text = {
                 Column {
                     Text(
@@ -237,7 +294,10 @@ fun SavingsGoalsScreen(
                         onValueChange = { fundsInput = it.filter { c -> c.isDigit() } },
                         label = { Text("Summa") },
                         placeholder = { Text("1 000 000") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
                         visualTransformation = ThousandsSeparatorVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -299,8 +359,23 @@ private fun EmergencyFundCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_shield),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "🛡️ Moliyaviy yostiqcha",
+                        text = "Moliyaviy yostiqcha",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -389,6 +464,7 @@ private fun SavingsGoalCard(
     onAddFunds: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val goalColor = Color(goal.colorHex)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -399,23 +475,19 @@ private fun SavingsGoalCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val iconEmoji = when (goal.iconKey) {
-                    "car" -> "🚗"
-                    "plane" -> "✈️"
-                    "phone" -> "📱"
-                    "home" -> "🏠"
-                    "study" -> "🎓"
-                    else -> "🎯"
-                }
-
                 Box(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(Color(goal.colorHex).copy(alpha = 0.15f)),
+                        .background(goalColor.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = iconEmoji, style = MaterialTheme.typography.titleLarge)
+                    Icon(
+                        painter = painterResource(goalIconRes(goal.iconKey)),
+                        contentDescription = goal.name,
+                        tint = goalColor,
+                        modifier = Modifier.size(24.dp),
+                    )
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -424,17 +496,27 @@ private fun SavingsGoalCard(
                             text = goal.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         if (goal.isCompleted) {
                             Spacer(Modifier.width(8.dp))
-                            Box(
+                            Row(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(Color(0xFF2E7D32).copy(alpha = 0.15f))
                                     .padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_trophy),
+                                    contentDescription = null,
+                                    tint = Color(0xFF2E7D32),
+                                    modifier = Modifier.size(13.dp),
+                                )
+                                Spacer(Modifier.width(4.dp))
                                 Text(
-                                    text = "🎉 Erishildi!",
+                                    text = "Erishildi!",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color(0xFF2E7D32),
                                     fontWeight = FontWeight.Bold,
@@ -462,7 +544,7 @@ private fun SavingsGoalCard(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
-                color = Color(goal.colorHex),
+                color = goalColor,
                 drawStopIndicator = {},
             )
 
@@ -481,7 +563,7 @@ private fun SavingsGoalCard(
                     text = "${goal.percent}%",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(goal.colorHex),
+                    color = goalColor,
                 )
             }
 
@@ -504,42 +586,65 @@ private fun SavingsGoalCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun AddGoalDialog(
     onDismiss: () -> Unit,
     onAdd: (name: String, targetAmount: Long, iconKey: String, colorHex: Long) -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
     var name by remember { mutableStateOf("") }
     var targetText by remember { mutableStateOf("") }
     var selectedIcon by remember { mutableStateOf("car") }
-    var selectedColor by remember { mutableStateOf(0xFF1976D2) }
+    var selectedColor by remember { mutableLongStateOf(0xFF1976D2) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Yangi maqsad qoʻshish", fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                // Presets
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // Horizontal scrollable presets so chip labels never wrap vertically
                 Text(
-                    text = "Tezkor tanlov:",
+                    text = "Tezkor tanlov (ustiga bosing):",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    GOAL_PRESETS.take(3).forEach { preset ->
+                    GOAL_PRESETS.forEach { preset ->
+                        val isSelected = name == preset.name
                         FilterChip(
-                            selected = name == preset.name,
+                            selected = isSelected,
                             onClick = {
                                 name = preset.name
                                 targetText = preset.targetAmount.toString()
                                 selectedIcon = preset.iconKey
                                 selectedColor = preset.colorHex
                             },
-                            label = { Text(preset.name.take(12)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(goalIconRes(preset.iconKey)),
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else Color(preset.colorHex),
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = preset.name,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                )
+                            },
                         )
                     }
                 }
@@ -548,7 +653,11 @@ private fun AddGoalDialog(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Maqsad nomi") },
-                    placeholder = { Text("Avtomobil olish") },
+                    placeholder = { Text("Masalan: Avtomobil olish") },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                    ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -558,42 +667,57 @@ private fun AddGoalDialog(
                     onValueChange = { targetText = it.filter { c -> c.isDigit() } },
                     label = { Text("Kerakli summa") },
                     placeholder = { Text("50 000 000") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() },
+                    ),
                     visualTransformation = ThousandsSeparatorVisualTransformation(),
                     singleLine = true,
                     suffix = { Text("soʻm") },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                // Icon selection
+                // Vector Icon Grid Selection (16 icons)
                 Text(
                     text = "Ikonka tanlang:",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    listOf(
-                        "car" to "🚗",
-                        "plane" to "✈️",
-                        "phone" to "📱",
-                        "home" to "🏠",
-                        "study" to "🎓",
-                        "general" to "🎯",
-                    ).forEach { (key, emoji) ->
+                    GOAL_ICON_OPTIONS.forEach { option ->
+                        val isSelected = selectedIcon == option.key
+                        val tint = Color(option.defaultColorHex)
                         Box(
                             modifier = Modifier
-                                .size(38.dp)
+                                .size(42.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (selectedIcon == key) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                    if (isSelected) tint.copy(alpha = 0.22f)
+                                    else MaterialTheme.colorScheme.surfaceVariant,
                                 )
-                                .clickable { selectedIcon = key },
+                                .then(
+                                    if (isSelected) Modifier.border(2.dp, tint, CircleShape)
+                                    else Modifier
+                                )
+                                .clickable {
+                                    selectedIcon = option.key
+                                    selectedColor = option.defaultColorHex
+                                },
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(text = emoji)
+                            Icon(
+                                painter = painterResource(option.iconRes),
+                                contentDescription = option.key,
+                                tint = if (isSelected) tint else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(22.dp),
+                            )
                         }
                     }
                 }
@@ -604,7 +728,7 @@ private fun AddGoalDialog(
                 onClick = {
                     val amount = targetText.toLongOrNull() ?: 0L
                     if (name.isNotBlank() && amount > 0) {
-                        onAdd(name, amount, selectedIcon, selectedColor)
+                        onAdd(name.trim(), amount, selectedIcon, selectedColor)
                     }
                 },
             ) {

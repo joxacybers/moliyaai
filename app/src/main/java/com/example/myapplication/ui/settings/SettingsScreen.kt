@@ -8,8 +8,9 @@ import android.os.Build
 import android.os.LocaleList
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,11 +22,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -55,6 +59,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -64,12 +70,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
 import com.example.myapplication.data.ThemeMode
+import com.example.myapplication.data.model.TransactionType
+import com.example.myapplication.ui.common.AddCustomCategoryDialog
 import com.example.myapplication.ui.common.SectionTitle
+import com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation
 import com.example.myapplication.ui.common.appContainer
+import com.example.myapplication.ui.common.customCategoryIconRes
 import com.example.myapplication.updater.ReleaseInfo
 import com.example.myapplication.updater.UpdateCheckResult
 import kotlinx.coroutines.launch
@@ -99,6 +110,7 @@ fun SettingsScreen(
     var showRestoreConfirm by remember { mutableStateOf<Uri?>(null) }
     var showClearConfirm by remember { mutableStateOf(false) }
     var showPinDialog by remember { mutableStateOf(false) }
+    var showAddCategoryDialog by remember { mutableStateOf(false) }
 
     var isCheckingUpdate by remember { mutableStateOf(false) }
     var updateRelease by remember { mutableStateOf<ReleaseInfo?>(null) }
@@ -179,7 +191,87 @@ fun SettingsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // 1. Security / PIN Code section
+            // 1. Custom Categories Management Section
+            item {
+                SectionTitle("Maxsus toifalar (Kategoriyalar)")
+                Spacer(Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = "Oʻzingizga mos yangi kirim yoki chiqim toifalarini va ikonkalarini qoʻshing.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
+                        if (state.customCategories.isNotEmpty()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                state.customCategories.forEach { cat ->
+                                    val tint = Color(cat.colorHex)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .background(tint.copy(alpha = 0.15f)),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(customCategoryIconRes(cat.iconKey)),
+                                                contentDescription = cat.name,
+                                                tint = tint,
+                                                modifier = Modifier.size(18.dp),
+                                            )
+                                        }
+                                        Spacer(Modifier.width(10.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = cat.name,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                            )
+                                            Text(
+                                                text = if (cat.type == TransactionType.EXPENSE) "Chiqim" else "Kirim",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                        IconButton(onClick = { viewModel.deleteCustomCategory(cat.id) }) {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Oʻchirish",
+                                                tint = MaterialTheme.colorScheme.outline,
+                                            )
+                                        }
+                                    }
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                                    )
+                                }
+                            }
+                        }
+
+                        Button(
+                            onClick = { showAddCategoryDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Yangi toifa qoʻshish")
+                        }
+                    }
+                }
+            }
+
+            // 2. Security / PIN Code section
             item {
                 SectionTitle(stringResource(R.string.security_section))
                 Spacer(Modifier.height(8.dp))
@@ -326,7 +418,7 @@ fun SettingsScreen(
                 }
             }
 
-            // 2. Appearance (Theme & Language)
+            // 3. Appearance (Theme & Language)
             item {
                 SectionTitle(stringResource(R.string.appearance_section))
                 Spacer(Modifier.height(8.dp))
@@ -413,7 +505,7 @@ fun SettingsScreen(
                 }
             }
 
-            // 3. Budget limit
+            // 4. Budget limit
             item {
                 SectionTitle(stringResource(R.string.budget_title))
                 Spacer(Modifier.height(8.dp))
@@ -432,7 +524,7 @@ fun SettingsScreen(
                                 keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Done,
                             ),
-                            visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
+                            visualTransformation = ThousandsSeparatorVisualTransformation(),
                             keyboardActions = KeyboardActions(onDone = { viewModel.saveBudget() }),
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
@@ -447,7 +539,7 @@ fun SettingsScreen(
                 }
             }
 
-            // 4. Data & backup
+            // 5. Data & backup
             item {
                 SectionTitle(stringResource(R.string.data_backup))
                 Spacer(Modifier.height(8.dp))
@@ -489,7 +581,7 @@ fun SettingsScreen(
                 }
             }
 
-            // 5. AI status card
+            // 6. AI status card
             item {
                 SectionTitle(stringResource(R.string.ai_status))
                 Spacer(Modifier.height(8.dp))
@@ -534,7 +626,7 @@ fun SettingsScreen(
                 }
             }
 
-            // 6. Developer / Demo tools & App Version
+            // 7. Developer / Demo tools & App Version
             item {
                 SectionTitle(stringResource(R.string.developer_section))
                 Spacer(Modifier.height(8.dp))
@@ -566,7 +658,7 @@ fun SettingsScreen(
                                         is UpdateCheckResult.UpToDate -> {
                                             val currentVer = try {
                                                 context.packageManager.getPackageInfo(context.packageName, 0).versionName
-                                            } catch (_: Exception) { "v1.4" }
+                                            } catch (_: Exception) { "v2.1" }
                                             snackbarHostState.showSnackbar(
                                                 context.getString(R.string.up_to_date, currentVer),
                                             )
@@ -591,7 +683,7 @@ fun SettingsScreen(
                         Spacer(Modifier.height(4.dp))
                         val currentVer = try {
                             context.packageManager.getPackageInfo(context.packageName, 0).versionName
-                        } catch (_: Exception) { "1.4" }
+                        } catch (_: Exception) { "2.1" }
                         Text(
                             text = "Moliya AI v$currentVer · GitHub OTA Auto-Update Ready",
                             style = MaterialTheme.typography.labelSmall,
@@ -602,6 +694,18 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    if (showAddCategoryDialog) {
+        AddCustomCategoryDialog(
+            initialType = TransactionType.EXPENSE,
+            showTypeSelector = true,
+            onDismiss = { showAddCategoryDialog = false },
+            onAdd = { newCat ->
+                viewModel.addCustomCategory(newCat)
+                showAddCategoryDialog = false
+            },
+        )
     }
 
     updateRelease?.let { release ->

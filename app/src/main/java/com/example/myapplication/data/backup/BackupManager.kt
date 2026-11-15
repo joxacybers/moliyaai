@@ -34,6 +34,9 @@ data class BackupTransaction(
     val account: Account = Account.CARD,
     val note: String = "",
     val createdAt: Long = 0,
+    val customCategoryName: String = "",
+    val customCategoryIcon: String = "",
+    val customCategoryColor: Long = 0L,
 )
 
 /** JSON backup/restore and CSV export through the Storage Access Framework (no permissions needed). */
@@ -77,9 +80,10 @@ class BackupManager(
             append('\uFEFF') // BOM so Excel opens UTF-8 correctly
             append("date,type,category,account,amount,note\n")
             all.forEach { t ->
+                val catLabel = t.customCategoryName.ifBlank { t.category.name }
                 append(t.date).append(',')
                 append(t.type.name).append(',')
-                append(t.category.name).append(',')
+                append(catLabel.csvEscape()).append(',')
                 append(t.account.name).append(',')
                 append(t.amount).append(',')
                 append(t.note.csvEscape()).append('\n')
@@ -101,6 +105,9 @@ class BackupManager(
         account = account,
         note = note,
         createdAt = createdAt,
+        customCategoryName = customCategoryName,
+        customCategoryIcon = customCategoryIcon,
+        customCategoryColor = customCategoryColor,
     )
 
     private fun BackupTransaction.toEntity(): TransactionEntity {
@@ -114,6 +121,9 @@ class BackupManager(
             epochDay = LocalDate.parse(date).toEpochDay(),
             note = note,
             createdAt = createdAt.takeIf { it > 0 } ?: System.currentTimeMillis(),
+            customCategoryName = customCategoryName,
+            customCategoryIcon = customCategoryIcon,
+            customCategoryColor = customCategoryColor,
         )
     }
 

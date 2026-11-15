@@ -429,7 +429,7 @@ fun HistoryScreen(
                 ) {
                     items(state.dayGroups, key = { it.date.toEpochDay() }) { group ->
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            // Date header with daily net total
+                            // Date header with daily total income AND daily total expense
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -443,16 +443,31 @@ fun HistoryScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
-                                val dailyNet = group.totalIncome - group.totalExpense
-                                val netColor = if (dailyNet >= 0) incomeColor() else expenseColor()
-                                Text(
-                                    text = (if (dailyNet >= 0) "+" else "−") + money(kotlin.math.abs(dailyNet)),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = netColor,
-                                    maxLines = 1,
-                                    softWrap = false,
-                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    if (state.filter != HistoryFilter.EXPENSE) {
+                                        Text(
+                                            text = "+${money(group.totalIncome)}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = incomeColor(),
+                                            maxLines = 1,
+                                            softWrap = false,
+                                        )
+                                    }
+                                    if (state.filter != HistoryFilter.INCOME) {
+                                        Text(
+                                            text = "−${money(group.totalExpense)}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = expenseColor(),
+                                            maxLines = 1,
+                                            softWrap = false,
+                                        )
+                                    }
+                                }
                             }
 
                             // Day container card

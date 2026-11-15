@@ -27,6 +27,9 @@ data class CategoryAmount(
     val amount: Long,
     /** Share of the total in range 0..1. */
     val share: Float,
+    val customName: String = "",
+    val customIconKey: String = "",
+    val customColorHex: Long = 0L,
 )
 
 /** Pure, deterministic aggregation helpers. Weeks start on Monday. */
@@ -83,8 +86,30 @@ object StatsCalculator {
         to: LocalDate,
         type: TransactionType = TransactionType.EXPENSE,
     ): List<CategoryAmount> {
-        val amounts = categoryAmounts(transactions, from, to, type)
-        return toShares(amounts)
+        val fromDay = from.toEpochDay()
+        val toDay = to.toEpochDay()
+        val filtered = transactions.filter { it.type == type && it.epochDay in fromDay..toDay }
+        val total = filtered.sumOf { it.amount }
+        if (total <= 0L) return emptyList()
+
+        return filtered
+            .groupBy { Pair(it.category, it.customCategoryName.trim()) }
+            .mapNotNull { (key, items) ->
+                val sum = items.sumOf { it.amount }
+                if (sum <= 0L) null
+                else {
+                    val sample = items.first()
+                    CategoryAmount(
+                        category = key.first,
+                        amount = sum,
+                        share = sum.toFloat() / total,
+                        customName = key.second,
+                        customIconKey = if (key.second.isNotEmpty()) sample.customCategoryIcon else "",
+                        customColorHex = if (key.second.isNotEmpty()) sample.customCategoryColor else 0L,
+                    )
+                }
+            }
+            .sortedByDescending { it.amount }
     }
 
     fun categoryAmounts(

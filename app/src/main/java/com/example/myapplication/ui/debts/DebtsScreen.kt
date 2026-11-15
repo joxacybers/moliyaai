@@ -1,5 +1,12 @@
 package com.example.myapplication.ui.debts
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,14 +26,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -51,32 +61,78 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
 import com.example.myapplication.data.db.DebtEntity
 import com.example.myapplication.data.db.DebtType
 import com.example.myapplication.ui.common.EmptyState
+import com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation
 import com.example.myapplication.ui.common.appContainer
-import com.example.myapplication.ui.common.formatAmount
 import com.example.myapplication.ui.common.formatDayMonth
-import com.example.myapplication.ui.common.incomeColor
 import com.example.myapplication.ui.common.money
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+
+private data class PhoneContact(
+    val name: String,
+    val phone: String,
+)
+
+private fun loadPhoneContacts(context: Context): List<PhoneContact> {
+    val result = mutableListOf<PhoneContact>()
+    val seen = mutableSetOf<String>()
+    try {
+        val projection = arrayOf(
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+            ContactsContract.CommonDataKinds.Phone.NUMBER,
+        )
+        context.contentResolver.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            projection,
+            null,
+            null,
+            "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} ASC",
+        )?.use { cursor ->
+            val nameIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+            val numIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+            while (cursor.moveToNext()) {
+                val rawName = if (nameIdx >= 0) cursor.getString(nameIdx)?.trim().orEmpty() else ""
+                val rawNum = if (numIdx >= 0) cursor.getString(numIdx)?.trim().orEmpty() else ""
+                if (rawName.isNotEmpty() || rawNum.isNotEmpty()) {
+                    val key = "${rawName.lowercase()}|${rawNum.filter { it.isDigit() }}"
+                    if (seen.add(key)) {
+                        result += PhoneContact(
+                            name = rawName.ifEmpty { rawNum },
+                            phone = rawNum,
+                        )
+                    }
+                }
+            }
+        }
+    } catch (_: Exception) {
+    }
+    return result
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -226,8 +282,11 @@ fun DebtsScreen(
                         onValueChange = { paymentAmountInput = it.filter { c -> c.isDigit() } },
                         label = { Text(stringResource(R.string.amount)) },
                         placeholder = { Text(debt.remainingAmount.toString()) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                        visualTransformation = ThousandsSeparatorVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         suffix = { Text("soʻm") },
@@ -462,7 +521,7 @@ private fun DebtCard(
                     if (debt.dueDateEpochMillis != null) {
                         val dueLocalDate = Instant.ofEpochMilli(debt.dueDateEpochMillis).atZone(ZoneId.systemDefault()).toLocalDate()
                         Text(
-                            text = if (isOverdue) "⚠️ Muddat oʻtdi: ${formatDayMonth(dueLocalDate)}" else "Muddat: ${formatDayMonth(dueLocalDate)}",
+                            text = if (isOverdue) "Muddat oʻtdi: ${formatDayMonth(dueLocalDate)}" else "Muddat: ${formatDayMonth(dueLocalDate)}",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = if (isOverdue) FontWeight.Bold else FontWeight.Normal,
                             color = if (isOverdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -525,6 +584,9 @@ private fun AddDebtDialog(
     onDismiss: () -> Unit,
     onAdd: (name: String, phone: String, type: DebtType, amount: Long, dueDate: Long?, note: String) -> Unit,
 ) {
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var amountText by remember { mutableStateOf("") }
@@ -532,6 +594,61 @@ private fun AddDebtDialog(
     var selectedType by remember { mutableStateOf(defaultType) }
     var dueDateEpochMillis by remember { mutableStateOf<Long?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
+
+    var showContactsDialog by remember { mutableStateOf(false) }
+    var phoneContacts by remember { mutableStateOf<List<PhoneContact>>(emptyList()) }
+
+    // System contact picker fallback (doesn't require READ_CONTACTS permission)
+    val systemPhonePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { res ->
+            val contactUri = res.data?.data ?: return@rememberLauncherForActivityResult
+            try {
+                val projection = arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER,
+                )
+                context.contentResolver.query(contactUri, projection, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val nameIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                        val numIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                        val pickedName = if (nameIdx >= 0) cursor.getString(nameIdx)?.trim().orEmpty() else ""
+                        val pickedPhone = if (numIdx >= 0) cursor.getString(numIdx)?.trim().orEmpty() else ""
+                        if (pickedName.isNotEmpty()) name = pickedName
+                        if (pickedPhone.isNotEmpty()) phone = pickedPhone
+                    }
+                }
+            } catch (_: Exception) {
+            }
+        },
+    )
+
+    val contactsPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted) {
+                phoneContacts = loadPhoneContacts(context)
+                showContactsDialog = true
+            } else {
+                // Fallback to system phone contact picker
+                val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                runCatching { systemPhonePickerLauncher.launch(intent) }
+            }
+        },
+    )
+
+    fun openContactSelector() {
+        val hasPerm = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_CONTACTS,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (hasPerm) {
+            phoneContacts = loadPhoneContacts(context)
+            showContactsDialog = true
+        } else {
+            contactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -567,10 +684,38 @@ private fun AddDebtDialog(
                     }
                 }
 
+                // Quick button to pick from phone contacts
+                OutlinedButton(
+                    onClick = { openContactSelector() },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_contacts),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Telefon kontaktlaridan tanlash")
+                }
+
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.debt_person_name)) },
+                    trailingIcon = {
+                        IconButton(onClick = { openContactSelector() }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_contacts),
+                                contentDescription = "Kontaktdan tanlash",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                    ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -580,8 +725,14 @@ private fun AddDebtDialog(
                     onValueChange = { amountText = it.filter { c -> c.isDigit() } },
                     label = { Text(stringResource(R.string.amount)) },
                     placeholder = { Text("1 000 000") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                    ),
+                    visualTransformation = ThousandsSeparatorVisualTransformation(),
                     singleLine = true,
                     suffix = { Text("soʻm") },
                     modifier = Modifier.fillMaxWidth(),
@@ -592,7 +743,13 @@ private fun AddDebtDialog(
                     onValueChange = { phone = it },
                     label = { Text(stringResource(R.string.debt_phone)) },
                     placeholder = { Text("+998 90 123 45 67") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Phone,
+                        imeAction = ImeAction.Next,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                    ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -625,6 +782,10 @@ private fun AddDebtDialog(
                     value = note,
                     onValueChange = { note = it },
                     label = { Text(stringResource(R.string.detail_note)) },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() },
+                    ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -648,6 +809,23 @@ private fun AddDebtDialog(
             }
         },
     )
+
+    if (showContactsDialog) {
+        ContactPickerDialog(
+            contacts = phoneContacts,
+            onDismiss = { showContactsDialog = false },
+            onSelect = { contact ->
+                name = contact.name
+                phone = contact.phone
+                showContactsDialog = false
+            },
+            onOpenSystemPicker = {
+                showContactsDialog = false
+                val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                runCatching { systemPhonePickerLauncher.launch(intent) }
+            },
+        )
+    }
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
@@ -679,4 +857,134 @@ private fun AddDebtDialog(
             DatePicker(state = datePickerState)
         }
     }
+}
+
+@Composable
+private fun ContactPickerDialog(
+    contacts: List<PhoneContact>,
+    onDismiss: () -> Unit,
+    onSelect: (PhoneContact) -> Unit,
+    onOpenSystemPicker: () -> Unit,
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val filtered = remember(contacts, searchQuery) {
+        if (searchQuery.isBlank()) {
+            contacts
+        } else {
+            val q = searchQuery.trim().lowercase()
+            contacts.filter {
+                it.name.lowercase().contains(q) || it.phone.lowercase().contains(q)
+            }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Kontaktni tanlang", fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Ism yoki raqam boʻyicha qidirish...") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = null)
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                if (filtered.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = if (contacts.isEmpty()) "Kontaktlar topilmadi" else "Qidiruv boʻyicha kontakt topilmadi",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        TextButton(onClick = onOpenSystemPicker) {
+                            Text("Tizim kontaktlar oynasidan tanlash")
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 320.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        items(filtered) { contact ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { onSelect(contact) }
+                                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primaryContainer),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
+                                Spacer(Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = contact.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    if (contact.phone.isNotEmpty()) {
+                                        Text(
+                                            text = contact.phone,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                }
+                            }
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
+    )
 }

@@ -4,11 +4,14 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.BudgetRepository
+import com.example.myapplication.data.SavingsRepository
+import com.example.myapplication.data.SettingsRepository
 import com.example.myapplication.data.TransactionRepository
 import com.example.myapplication.data.db.TransactionEntity
 import com.example.myapplication.data.db.date
 import com.example.myapplication.data.model.Account
 import com.example.myapplication.data.model.Category
+import com.example.myapplication.data.model.CustomCategory
 import com.example.myapplication.data.model.TransactionType
 import com.example.myapplication.notification.AppNotificationHelper
 import com.example.myapplication.ui.common.labelRes
@@ -25,6 +28,8 @@ data class AddEditUiState(
     val amountText: String = "",
     val type: TransactionType = TransactionType.EXPENSE,
     val category: Category = Category.FOOD,
+    val selectedCustomCategory: CustomCategory? = null,
+    val customCategories: List<CustomCategory> = emptyList(),
     val account: Account? = null,
     val date: LocalDate = LocalDate.now(),
     val note: String = "",
@@ -36,7 +41,8 @@ data class AddEditUiState(
 class AddEditViewModel(
     private val repo: TransactionRepository,
     private val budgetRepo: BudgetRepository,
-    private val savingsRepo: com.example.myapplication.data.SavingsRepository,
+    private val savingsRepo: SavingsRepository,
+    private val settingsRepo: SettingsRepository,
     private val appContext: Context,
     private val transactionId: Long,
 ) : ViewModel() {
@@ -48,14 +54,29 @@ class AddEditViewModel(
     val events = _events.asSharedFlow()
 
     init {
+        viewModelScope.launch {
+            settingsRepo.customCategories.collect { customList ->
+                _uiState.value = _uiState.value.copy(customCategories = customList)
+            }
+        }
         if (transactionId > 0) {
             viewModelScope.launch {
                 repo.get(transactionId)?.let { t ->
-                    _uiState.value = AddEditUiState(
+                    val customCat = if (t.customCategoryName.isNotBlank()) {
+                        CustomCategory(
+                            name = t.customCategoryName,
+                            type = t.type,
+                            iconKey = t.customCategoryIcon.ifBlank { "other" },
+                            colorHex = if (t.customCategoryColor != 0L) t.customCategoryColor else 0xFF1976D2,
+                        )
+                    } else null
+
+                    _uiState.value = _uiState.value.copy(
                         id = t.id,
                         amountText = t.amount.toString(),
                         type = t.type,
                         category = t.category,
+                        selectedCustomCategory = customCat,
                         account = t.account,
                         date = t.date,
                         note = t.note,
@@ -74,11 +95,39 @@ class AddEditViewModel(
     fun setType(type: TransactionType) {
         val currentCat = _uiState.value.category
         val newCategory = if (currentCat.type == type) currentCat else Category.forType(type).first()
-        _uiState.value = _uiState.value.copy(type = type, category = newCategory)
+        val currentCustom = _uiState.value.selectedCustomCategory
+        val newCustom = if (currentCustom?.type == type) currentCustom else null
+        _uiState.value = _uiState.value.copy(
+            type = type,
+            category = newCategory,
+            selectedCustomCategory = newCustom,
+        )
     }
 
     fun setCategory(category: Category) {
-        _uiState.value = _uiState.value.copy(category = category)
+        _uiState.value = _uiState.value.copy(
+            category = category,
+            selectedCustomCategory = null,
+        )
+    }
+
+    fun selectCustomCategory(customCategory: CustomCategory) {
+        val fallbackEnum = if (customCategory.type == TransactionType.INCOME) {
+            Category.OTHER_INCOME
+        } else {
+            Category.OTHER_EXPENSE
+        }
+        _uiState.value = _uiState.value.copy(
+            category = fallbackEnum,
+            selectedCustomCategory = customCategory,
+        )
+    }
+
+    fun addAndSelectCustomCategory(customCategory: CustomCategory) {
+        viewModelScope.launch {
+            settingsRepo.addCustomCategory(customCategory)
+            selectCustomCategory(customCategory)
+        }
     }
 
     fun setAccount(account: Account) {
@@ -108,6 +157,7 @@ class AddEditViewModel(
         }
         if (hasError) return
 
+        val customCat = _uiState.value.selectedCustomCategory
         val entity = TransactionEntity(
             id = _uiState.value.id,
             amount = amount,
@@ -116,6 +166,9 @@ class AddEditViewModel(
             account = account!!,
             epochDay = _uiState.value.date.toEpochDay(),
             note = _uiState.value.note.trim(),
+            customCategoryName = customCat?.name.orEmpty(),
+            customCategoryIcon = customCat?.iconKey.orEmpty(),
+            customCategoryColor = customCat?.colorHex ?: 0L,
         )
         viewModelScope.launch {
             repo.save(entity)
@@ -162,7 +215,9 @@ class AddEditViewModel(
 
             val percent = (monthSpent * 100 / budget.limitAmount).toInt()
             if (percent >= 80) {
-                val catName = appContext.getString(entity.category.labelRes)
+                val catName = entity.customCategoryName.ifBlank {
+                    appContext.getString(entity.category.labelRes)
+                }
                 AppNotificationHelper.showBudgetAlert(
                     context = appContext,
                     categoryName = catName,

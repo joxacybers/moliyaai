@@ -568,7 +568,12 @@ private fun SavingsBannerCard(
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = "🛡️", style = MaterialTheme.typography.titleMedium)
+                Icon(
+                    painter = painterResource(R.drawable.ic_shield),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {

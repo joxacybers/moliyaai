@@ -20,6 +20,10 @@ data class TransactionEntity(
     val epochDay: Long,
     val note: String = "",
     val createdAt: Long = System.currentTimeMillis(),
+    /** Optional user-defined custom category metadata. */
+    val customCategoryName: String = "",
+    val customCategoryIcon: String = "",
+    val customCategoryColor: Long = 0L,
 )
 
 val TransactionEntity.date: LocalDate get() = LocalDate.ofEpochDay(epochDay)

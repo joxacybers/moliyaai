@@ -10,6 +10,7 @@ import com.example.myapplication.data.SubscriptionRepository
 import com.example.myapplication.data.ThemeMode
 import com.example.myapplication.data.TransactionRepository
 import com.example.myapplication.data.backup.BackupManager
+import com.example.myapplication.data.model.CustomCategory
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,6 +39,7 @@ data class SettingsUiState(
     val biometricEnabled: Boolean = true,
     val smsAutoDetectEnabled: Boolean = true,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val customCategories: List<CustomCategory> = emptyList(),
     val isAiConfigured: Boolean = true,
     val modelName: String = AiAdvisor.DISPLAY_MODEL_NAME,
 )
@@ -55,6 +57,7 @@ class SettingsViewModel(
     private val _events = MutableSharedFlow<SettingsEvent>()
     val events = _events.asSharedFlow()
 
+    @Suppress("UNCHECKED_CAST")
     val uiState: StateFlow<SettingsUiState> = combine(
         settingsRepo.monthlyBudget,
         budgetInput,
@@ -62,6 +65,7 @@ class SettingsViewModel(
         settingsRepo.biometricEnabled,
         settingsRepo.smsAutoDetectEnabled,
         settingsRepo.themeMode,
+        settingsRepo.customCategories,
     ) { args: Array<Any?> ->
         val budget = args[0] as Long
         val input = args[1] as String?
@@ -69,6 +73,7 @@ class SettingsViewModel(
         val biometric = args[3] as Boolean
         val smsAutoDetect = args[4] as Boolean
         val theme = args[5] as ThemeMode
+        val customCats = args[6] as List<CustomCategory>
         SettingsUiState(
             monthlyBudget = budget,
             monthlyBudgetText = input ?: if (budget > 0) budget.toString() else "",
@@ -76,10 +81,23 @@ class SettingsViewModel(
             biometricEnabled = biometric,
             smsAutoDetectEnabled = smsAutoDetect,
             themeMode = theme,
+            customCategories = customCats,
             isAiConfigured = aiAdvisor.isConfigured,
             modelName = AiAdvisor.DISPLAY_MODEL_NAME,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
+
+    fun addCustomCategory(category: CustomCategory) {
+        viewModelScope.launch {
+            settingsRepo.addCustomCategory(category)
+        }
+    }
+
+    fun deleteCustomCategory(id: String) {
+        viewModelScope.launch {
+            settingsRepo.deleteCustomCategory(id)
+        }
+    }
 
     fun setBiometricEnabled(enabled: Boolean) {
         viewModelScope.launch {

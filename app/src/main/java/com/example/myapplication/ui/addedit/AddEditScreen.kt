@@ -16,10 +16,12 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -44,11 +46,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -58,7 +66,10 @@ import com.example.myapplication.R
 import com.example.myapplication.data.model.Account
 import com.example.myapplication.data.model.Category
 import com.example.myapplication.data.model.TransactionType
+import com.example.myapplication.ui.common.AddCustomCategoryDialog
+import com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation
 import com.example.myapplication.ui.common.appContainer
+import com.example.myapplication.ui.common.customCategoryIconRes
 import com.example.myapplication.ui.common.formatDate
 import com.example.myapplication.ui.common.iconRes
 import com.example.myapplication.ui.common.labelRes
@@ -75,12 +86,16 @@ fun AddEditScreen(
     modifier: Modifier = Modifier,
 ) {
     val container = appContainer()
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val noteFocusRequester = remember { FocusRequester() }
+
     val viewModel: AddEditViewModel = viewModel(key = "add_edit_$transactionId") {
         AddEditViewModel(
             repo = container.transactionRepository,
             budgetRepo = container.budgetRepository,
             savingsRepo = container.savingsRepository,
+            settingsRepo = container.settingsRepository,
             appContext = context.applicationContext,
             transactionId = transactionId,
         )
@@ -88,6 +103,7 @@ fun AddEditScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showAddCategoryDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     var isNoteFocused by remember { mutableStateOf(false) }
     val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
@@ -170,14 +186,25 @@ fun AddEditScreen(
                 )
             }
 
-            // Amount field
+            // Amount field with ImeAction.Next -> moves to selection / next input
             OutlinedTextField(
                 value = state.amountText,
                 onValueChange = viewModel::setAmount,
                 label = { Text(stringResource(R.string.amount)) },
                 suffix = { Text(stringResource(R.string.currency_suffix)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                visualTransformation = com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next,
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        if (state.account == null) {
+                            viewModel.setAccount(Account.CARD)
+                        }
+                        noteFocusRequester.requestFocus()
+                    },
+                ),
+                visualTransformation = ThousandsSeparatorVisualTransformation(),
                 isError = state.amountError,
                 supportingText = if (state.amountError) {
                     { Text(stringResource(R.string.amount_error)) }
@@ -237,14 +264,14 @@ fun AddEditScreen(
                 }
             }
 
-            // Category selector (flow of chips with vector icons)
+            // Category selector (standard categories + user custom categories + "+ Yangi toifa")
             Text(stringResource(R.string.category), style = MaterialTheme.typography.labelLarge)
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Category.forType(state.type).forEach { cat ->
-                    val isCatSelected = state.category == cat
+                    val isCatSelected = state.selectedCustomCategory == null && state.category == cat
                     FilterChip(
                         selected = isCatSelected,
                         onClick = { viewModel.setCategory(cat) },
@@ -259,6 +286,52 @@ fun AddEditScreen(
                         label = { Text(stringResource(cat.labelRes)) },
                     )
                 }
+
+                // Custom categories for this transaction type
+                state.customCategories
+                    .filter { it.type == state.type }
+                    .forEach { customCat ->
+                        val isCustomSelected = state.selectedCustomCategory?.name.equals(customCat.name, ignoreCase = true)
+                        FilterChip(
+                            selected = isCustomSelected,
+                            onClick = { viewModel.selectCustomCategory(customCat) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(customCategoryIconRes(customCat.iconKey)),
+                                    contentDescription = null,
+                                    tint = if (isCustomSelected) MaterialTheme.colorScheme.primary else Color(customCat.colorHex),
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = customCat.name,
+                                    fontWeight = if (isCustomSelected) FontWeight.Bold else FontWeight.Normal,
+                                )
+                            },
+                        )
+                    }
+
+                // Manual "+ Yangi toifa" chip
+                FilterChip(
+                    selected = false,
+                    onClick = { showAddCategoryDialog = true },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = "Yangi toifa",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    },
+                )
             }
 
             // Date picker section with quick chips
@@ -318,10 +391,15 @@ fun AddEditScreen(
                 value = state.note,
                 onValueChange = viewModel::setNote,
                 label = { Text(stringResource(R.string.note_optional)) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() },
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .focusRequester(noteFocusRequester)
                     .onFocusChanged { isNoteFocused = it.isFocused },
-                maxLines = 3,
+                singleLine = true,
             )
 
             Spacer(Modifier.height(8.dp))
@@ -336,6 +414,18 @@ fun AddEditScreen(
 
             Spacer(Modifier.height(16.dp))
         }
+    }
+
+    if (showAddCategoryDialog) {
+        AddCustomCategoryDialog(
+            initialType = state.type,
+            showTypeSelector = false,
+            onDismiss = { showAddCategoryDialog = false },
+            onAdd = { newCat ->
+                viewModel.addAndSelectCustomCategory(newCat)
+                showAddCategoryDialog = false
+            },
+        )
     }
 
     if (showDatePicker) {

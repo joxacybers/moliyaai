@@ -7,9 +7,11 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.myapplication.ai.CachedAdvice
+import com.example.myapplication.data.model.CustomCategory
 import com.example.myapplication.domain.PeriodType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
@@ -22,7 +24,7 @@ enum class ThemeMode {
 
 class SettingsRepository(private val context: Context) {
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     /** Monthly spending limit in so'm; 0 means "no limit". */
     val monthlyBudget: Flow<Long> = context.dataStore.data.map { it[KEY_BUDGET] ?: 0L }
@@ -60,6 +62,40 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[KEY_THEME_MODE] = mode.name }
+    }
+
+    /** User-defined custom categories for income and expense. */
+    val customCategories: Flow<List<CustomCategory>> = context.dataStore.data.map { prefs ->
+        val raw = prefs[KEY_CUSTOM_CATEGORIES] ?: return@map emptyList()
+        runCatching {
+            json.decodeFromString(ListSerializer(CustomCategory.serializer()), raw)
+        }.getOrDefault(emptyList())
+    }
+
+    suspend fun addCustomCategory(category: CustomCategory) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[KEY_CUSTOM_CATEGORIES]?.let { raw ->
+                runCatching {
+                    json.decodeFromString(ListSerializer(CustomCategory.serializer()), raw)
+                }.getOrDefault(emptyList())
+            }.orEmpty()
+            val updated = current.filterNot {
+                it.name.equals(category.name, ignoreCase = true) && it.type == category.type
+            } + category
+            prefs[KEY_CUSTOM_CATEGORIES] = json.encodeToString(ListSerializer(CustomCategory.serializer()), updated)
+        }
+    }
+
+    suspend fun deleteCustomCategory(id: String) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[KEY_CUSTOM_CATEGORIES]?.let { raw ->
+                runCatching {
+                    json.decodeFromString(ListSerializer(CustomCategory.serializer()), raw)
+                }.getOrDefault(emptyList())
+            }.orEmpty()
+            val updated = current.filterNot { it.id == id }
+            prefs[KEY_CUSTOM_CATEGORIES] = json.encodeToString(ListSerializer(CustomCategory.serializer()), updated)
+        }
     }
 
     /** Epoch day of the last manual AI request (enforces 1 request per day limit). */
@@ -111,6 +147,7 @@ class SettingsRepository(private val context: Context) {
         val KEY_BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
         val KEY_SMS_AUTO_DETECT = booleanPreferencesKey("sms_auto_detect_enabled")
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
+        val KEY_CUSTOM_CATEGORIES = stringPreferencesKey("custom_categories_json")
         val KEY_LAST_AI_DAY = longPreferencesKey("last_ai_request_epoch_day")
         val KEY_LAST_AUTO_MONTH = stringPreferencesKey("last_auto_analyzed_month")
         val KEY_OPENAI_KEY = stringPreferencesKey("custom_openai_key")

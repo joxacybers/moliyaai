@@ -86,18 +86,24 @@ fun CategoryBadge(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     iconSize: Dp = 22.dp,
+    customIconKey: String = "",
+    customColorHex: Long = 0L,
 ) {
+    val tint = if (customColorHex != 0L) Color(customColorHex) else category.tintColor
+    val container = tint.copy(alpha = 0.15f)
+    val icon = if (customIconKey.isNotBlank()) customCategoryIconRes(customIconKey) else category.iconRes
+
     Box(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(category.containerColor),
+            .background(container),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = painterResource(category.iconRes),
+            painter = painterResource(icon),
             contentDescription = stringResource(category.labelRes),
-            tint = category.tintColor,
+            tint = tint,
             modifier = Modifier.size(iconSize),
         )
     }
@@ -133,6 +139,9 @@ fun TransactionRow(
     modifier: Modifier = Modifier,
     showDate: Boolean = true,
 ) {
+    val catTitle = transaction.customCategoryName.takeIf { it.isNotBlank() }
+        ?: stringResource(transaction.category.labelRes)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -140,11 +149,15 @@ fun TransactionRow(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CategoryBadge(transaction.category)
+        CategoryBadge(
+            category = transaction.category,
+            customIconKey = transaction.customCategoryIcon,
+            customColorHex = transaction.customCategoryColor,
+        )
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(
-                text = stringResource(transaction.category.labelRes),
+                text = catTitle,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
@@ -222,9 +235,10 @@ fun CategoryDonutChart(
 
                 var startAngle = -90f
                 items.forEach { item ->
+                    val itemColor = if (item.customColorHex != 0L) Color(item.customColorHex) else item.category.tintColor
                     val sweep = (item.share * availableSweep).coerceAtLeast(2f)
                     drawArc(
-                        color = item.category.tintColor,
+                        color = itemColor,
                         startAngle = startAngle,
                         sweepAngle = sweep,
                         useCenter = false,
@@ -275,11 +289,12 @@ fun CategoryDonutChart(
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             items.forEach { item ->
+                val itemColor = if (item.customColorHex != 0L) Color(item.customColorHex) else item.category.tintColor
                 Box(
                     modifier = Modifier
                         .weight(item.share.coerceAtLeast(0.02f))
                         .height(10.dp)
-                        .background(item.category.tintColor),
+                        .background(itemColor),
                 )
             }
         }
@@ -291,6 +306,10 @@ fun CategoryBreakdownList(items: List<CategoryAmount>, modifier: Modifier = Modi
     Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         items.forEach { item ->
             val pctText = formatSharePercent(item.share)
+            val itemTitle = item.customName.takeIf { it.isNotBlank() } ?: stringResource(item.category.labelRes)
+            val itemTint = if (item.customColorHex != 0L) Color(item.customColorHex) else item.category.tintColor
+            val itemContainer = itemTint.copy(alpha = 0.15f)
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -303,6 +322,8 @@ fun CategoryBreakdownList(items: List<CategoryAmount>, modifier: Modifier = Modi
                     category = item.category,
                     size = 40.dp,
                     iconSize = 20.dp,
+                    customIconKey = item.customIconKey,
+                    customColorHex = item.customColorHex,
                 )
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
@@ -316,7 +337,7 @@ fun CategoryBreakdownList(items: List<CategoryAmount>, modifier: Modifier = Modi
                             modifier = Modifier.weight(1f, fill = false),
                         ) {
                             Text(
-                                text = stringResource(item.category.labelRes),
+                                text = itemTitle,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
@@ -327,14 +348,14 @@ fun CategoryBreakdownList(items: List<CategoryAmount>, modifier: Modifier = Modi
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(item.category.containerColor)
+                                    .background(itemContainer)
                                     .padding(horizontal = 6.dp, vertical = 2.dp),
                             ) {
                                 Text(
                                     text = pctText,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = item.category.tintColor,
+                                    color = itemTint,
                                     maxLines = 1,
                                 )
                             }
@@ -356,8 +377,8 @@ fun CategoryBreakdownList(items: List<CategoryAmount>, modifier: Modifier = Modi
                             .fillMaxWidth()
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
-                        color = item.category.tintColor,
-                        trackColor = item.category.containerColor,
+                        color = itemTint,
+                        trackColor = itemContainer,
                         drawStopIndicator = {},
                     )
                 }

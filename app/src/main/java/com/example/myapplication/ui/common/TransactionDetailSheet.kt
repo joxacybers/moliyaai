@@ -74,13 +74,16 @@ fun TransactionDetailSheet(
                 category = transaction.category,
                 size = 64.dp,
                 iconSize = 32.dp,
+                customIconKey = transaction.customCategoryIcon,
+                customColorHex = transaction.customCategoryColor,
             )
 
             Spacer(Modifier.height(12.dp))
 
             // Category title
             Text(
-                text = stringResource(transaction.category.labelRes),
+                text = transaction.customCategoryName.takeIf { it.isNotBlank() }
+                    ?: stringResource(transaction.category.labelRes),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
