@@ -399,7 +399,7 @@ fun SettingsScreen(
                 }
             }
 
-            // 3. Xavfsizlik (PIN & Biometrics)
+            // 3. Xavfsizlik va Maxfiylik Qalqoni (PIN, Biometrics, FLAG_SECURE, Auto-Lock, Permissions)
             item {
                 SectionTitle(stringResource(R.string.security_section))
                 Spacer(Modifier.height(8.dp))
@@ -413,7 +413,7 @@ fun SettingsScreen(
                             iconTint = Color(0xFF3949AB),
                             title = stringResource(R.string.pin_lock_title),
                             subtitle = if (state.pinCode.isNotEmpty()) {
-                                stringResource(R.string.pin_status_enabled)
+                                "${stringResource(R.string.pin_status_enabled)} • PBKDF2-SHA256 şifrlangan"
                             } else {
                                 stringResource(R.string.pin_status_disabled)
                             },
@@ -465,7 +465,75 @@ fun SettingsScreen(
                                     )
                                 },
                             )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            )
+                            SettingsRowItem(
+                                iconRes = R.drawable.ic_shield,
+                                iconTint = Color(0xFF1E88E5),
+                                title = "Skrinşot va yozib olişdan himoya",
+                                subtitle = "Recent Apps va ekran yozuvçilarida balansni yaşiriş (FLAG_SECURE)",
+                                onClick = null,
+                                trailing = {
+                                    Switch(
+                                        checked = state.screenSecurityEnabled,
+                                        onCheckedChange = viewModel::setScreenSecurityEnabled,
+                                    )
+                                },
+                            )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            )
+                            SettingsRowItem(
+                                iconRes = R.drawable.ic_lock,
+                                iconTint = Color(0xFF8E24AA),
+                                title = "Fonda avtomatik qulflaş",
+                                subtitle = "Ilova 60 soniya fonda qolganda PIN-kodni qayta сöraş",
+                                onClick = null,
+                                trailing = {
+                                    Switch(
+                                        checked = state.autoLockEnabled,
+                                        onCheckedChange = viewModel::setAutoLockEnabled,
+                                    )
+                                },
+                            )
                         }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        )
+
+                        val hasSmsPerm = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.RECEIVE_SMS,
+                        ) == PackageManager.PERMISSION_GRANTED
+                        val hasContactsPerm = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.READ_CONTACTS,
+                        ) == PackageManager.PERMISSION_GRANTED
+                        val activePermsCount = listOf(hasSmsPerm, hasContactsPerm, true).count { it }
+
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_shield,
+                            iconTint = Color(0xFF2E7D32),
+                            title = "Ruxsatlar va Maxfiylik Qalqoni ($activePermsCount/3 faol)",
+                            subtitle = "SMS karta/balans maskalaş yoqilgan • Tizim ruxsatlarini boşqariş",
+                            onClick = {
+                                runCatching {
+                                    val intent = android.content.Intent(
+                                        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    ).apply {
+                                        data = Uri.fromParts("package", context.packageName, null)
+                                    }
+                                    context.startActivity(intent)
+                                }
+                            },
+                        )
                     }
                 }
             }

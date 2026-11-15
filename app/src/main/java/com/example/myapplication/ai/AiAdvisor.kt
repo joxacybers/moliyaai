@@ -479,7 +479,8 @@ class AiAdvisor(private val context: Context) {
             {"type":"EXPENSE|INCOME","category":"STANDARD_ENUM_NAME","customCategoryName":"exact custom category name if matched else empty","merchant":"clean merchant or description","amount":12345}
         """.trimIndent()
 
-        val userMessage = "Sender: $sender\nSMS: $rawSms\nInitial guess: type=${initialParsed.type.name}, amount=${initialParsed.amount}, merchant=${initialParsed.merchant}, category=${initialParsed.category.name}"
+        val sanitizedSms = com.example.myapplication.sms.SmsSanitizer.sanitizeForAiAndStorage(rawSms)
+        val userMessage = "Sender: $sender\nSMS: $sanitizedSms\nInitial guess: type=${initialParsed.type.name}, amount=${initialParsed.amount}, merchant=${initialParsed.merchant}, category=${initialParsed.category.name}"
 
         val endpoints = buildList {
             val key = customApiKey?.trim()?.takeIf { it.isNotBlank() }

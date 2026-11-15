@@ -114,23 +114,41 @@ class UpdateManager(
         }
     }
 
+    fun cleanupCachedApks() {
+        runCatching {
+            val cacheDir = File(context.cacheDir, "updates")
+            if (cacheDir.exists()) {
+                cacheDir.listFiles()?.forEach { file ->
+                    if (file.name.endsWith(".apk", ignoreCase = true)) {
+                        file.delete()
+                    }
+                }
+            }
+        }
+    }
+
     suspend fun downloadApk(
         downloadUrl: String,
         onProgress: (Float) -> Unit,
     ): File? = withContext(Dispatchers.IO) {
         try {
+            val initialUrl = URL(downloadUrl)
+            if (!initialUrl.protocol.equals("https", ignoreCase = true)) {
+                return@withContext null
+            }
+
             val cacheDir = File(context.cacheDir, "updates").apply { mkdirs() }
             val destination = File(cacheDir, "moliyaai-update.apk")
             if (destination.exists()) destination.delete()
 
-            var connection = (URL(downloadUrl).openConnection() as HttpURLConnection).apply {
+            var connection = (initialUrl.openConnection() as HttpURLConnection).apply {
                 connectTimeout = 15_000
                 readTimeout = 30_000
                 instanceFollowRedirects = true
                 setRequestProperty("User-Agent", "MoliyaAI-App")
             }
 
-            // Handle HTTP redirect (GitHub Releases redirect to AWS S3)
+            // Handle HTTP redirect (GitHub Releases redirect to AWS S3 / objects.githubusercontent.com)
             var redirect = false
             val status = connection.responseCode
             if (status == HttpURLConnection.HTTP_MOVED_TEMP ||
@@ -141,8 +159,12 @@ class UpdateManager(
             }
 
             if (redirect) {
-                val newUrl = connection.getHeaderField("Location")
-                connection = (URL(newUrl).openConnection() as HttpURLConnection).apply {
+                val newLocation = connection.getHeaderField("Location") ?: return@withContext null
+                val redirectedUrl = URL(newLocation)
+                if (!redirectedUrl.protocol.equals("https", ignoreCase = true)) {
+                    return@withContext null
+                }
+                connection = (redirectedUrl.openConnection() as HttpURLConnection).apply {
                     connectTimeout = 15_000
                     readTimeout = 30_000
                     setRequestProperty("User-Agent", "MoliyaAI-App")
@@ -166,9 +188,37 @@ class UpdateManager(
                 }
             }
 
+            if (!verifyDownloadedApkIntegrity(destination)) {
+                destination.delete()
+                return@withContext null
+            }
+
             destination
         } catch (e: Exception) {
             null
+        }
+    }
+
+    private fun verifyDownloadedApkIntegrity(apkFile: File): Boolean {
+        if (!apkFile.exists() || apkFile.length() < 100_000L) return false
+        return try {
+            val pm = context.packageManager
+            val flags = android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES
+            val archiveInfo = pm.getPackageArchiveInfo(apkFile.absolutePath, flags) ?: return false
+            if (archiveInfo.packageName != context.packageName) {
+                return false
+            }
+            val installedInfo = pm.getPackageInfo(context.packageName, flags)
+            val archiveSigners = archiveInfo.signingInfo?.apkContentsSigners
+            val installedSigners = installedInfo.signingInfo?.apkContentsSigners
+            if (!archiveSigners.isNullOrEmpty() && !installedSigners.isNullOrEmpty()) {
+                val installedSet = installedSigners.map { it.toCharsString() }.toSet()
+                archiveSigners.any { it.toCharsString() in installedSet }
+            } else {
+                true
+            }
+        } catch (_: Exception) {
+            true
         }
     }
 

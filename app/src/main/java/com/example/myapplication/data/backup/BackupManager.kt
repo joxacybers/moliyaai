@@ -127,14 +127,29 @@ class BackupManager(
         )
     }
 
-    private fun String.csvEscape(): String =
-        if (any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
-            "\"" + replace("\"", "\"\"") + "\""
+    internal fun String.csvEscape(): String {
+        val safeFormula = sanitizeCsvFormula(this)
+        return if (safeFormula.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
+            "\"" + safeFormula.replace("\"", "\"\"") + "\""
         } else {
-            this
+            safeFormula
         }
+    }
 
     companion object {
         const val CURRENT_VERSION = 2
+
+        /**
+         * Prevents CSV Injection (Formula Injection) when exported CSV files are opened in Excel or Google Sheets.
+         */
+        fun sanitizeCsvFormula(cell: String): String {
+            if (cell.isEmpty()) return cell
+            val first = cell.first()
+            return if (first == '=' || first == '+' || first == '-' || first == '@' || first == '\t' || first == '\r') {
+                "'$cell"
+            } else {
+                cell
+            }
+        }
     }
 }

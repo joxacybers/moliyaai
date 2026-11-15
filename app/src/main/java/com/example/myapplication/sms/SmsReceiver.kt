@@ -23,6 +23,10 @@ class SmsReceiver : BroadcastReceiver() {
         val fullBody = messages.joinToString("") { it.displayMessageBody ?: "" }
 
         if (fullBody.isBlank()) return
+        // Security gate: only process bank/payment senders and immediately drop OTP/secret messages
+        if (!SmsParser.isBankSender(sender) || SmsSanitizer.containsSensitiveOtpOrSecret(fullBody)) {
+            return
+        }
 
         val app = context.applicationContext as? FinanceApp ?: return
         val container = app.container
@@ -37,9 +41,10 @@ class SmsReceiver : BroadcastReceiver() {
                 val customApiKey = container.settingsRepository.customOpenAiKey.first()
 
                 val initialParsed = SmsParser.parse(sender, fullBody, customCategories) ?: return@launch
+                val sanitizedSms = SmsSanitizer.sanitizeForAiAndStorage(fullBody)
                 val aiEnriched = container.aiAdvisor.analyzeSmsForDraft(
                     sender = sender,
-                    rawSms = fullBody,
+                    rawSms = sanitizedSms,
                     initialParsed = initialParsed,
                     customCategories = customCategories,
                     customApiKey = customApiKey,

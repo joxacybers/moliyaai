@@ -329,12 +329,18 @@ class NotificationsViewModel(
                         val bodyIdx = c.getColumnIndex(Telephony.Sms.BODY)
                         val dateIdx = c.getColumnIndex(Telephony.Sms.DATE)
                         var count = 0
-                        while (c.moveToNext() && count < 35) {
+                        while (c.moveToNext() && count < 45) {
                             val sender = if (addrIdx >= 0) c.getString(addrIdx).orEmpty() else ""
                             val body = if (bodyIdx >= 0) c.getString(bodyIdx).orEmpty() else ""
                             val date = if (dateIdx >= 0) c.getLong(dateIdx) else System.currentTimeMillis()
-                            if (body.isNotBlank() && body.trim() !in existingTexts) {
-                                list.add(Triple(sender, body.trim(), date))
+                            if (body.isNotBlank() &&
+                                SmsParser.isBankSender(sender) &&
+                                !com.example.myapplication.sms.SmsSanitizer.containsSensitiveOtpOrSecret(body)
+                            ) {
+                                val sanitized = com.example.myapplication.sms.SmsSanitizer.sanitizeForAiAndStorage(body.trim())
+                                if (sanitized !in existingTexts && body.trim() !in existingTexts) {
+                                    list.add(Triple(sender, body.trim(), date))
+                                }
                             }
                             count++
                         }

@@ -109,9 +109,22 @@ fun PinLockScreen(
     onUnlocked: () -> Unit,
     biometricAvailable: Boolean = false,
     onBiometricClick: () -> Unit = {},
+    onMigrateLegacyPin: ((String) -> Unit)? = null,
 ) {
     var entered by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
+    var failedAttempts by remember { mutableStateOf(0) }
+    var lockoutSecondsLeft by remember { mutableStateOf(0) }
+
+    LaunchedEffect(lockoutSecondsLeft) {
+        if (lockoutSecondsLeft > 0) {
+            delay(1_000L)
+            lockoutSecondsLeft -= 1
+            if (lockoutSecondsLeft == 0) {
+                isError = false
+            }
+        }
+    }
 
     LaunchedEffect(biometricAvailable) {
         if (biometricAvailable) {
@@ -120,21 +133,32 @@ fun PinLockScreen(
     }
 
     fun onDigit(digit: String) {
+        if (lockoutSecondsLeft > 0) return
         if (entered.length < 4) {
             entered += digit
             isError = false
             if (entered.length == 4) {
-                if (entered == expectedPin) {
+                if (com.example.myapplication.security.SecurityCryptoHelper.verifyPin(entered, expectedPin)) {
+                    if (!com.example.myapplication.security.SecurityCryptoHelper.isHashedPin(expectedPin)) {
+                        onMigrateLegacyPin?.invoke(entered)
+                    }
+                    failedAttempts = 0
                     onUnlocked()
                 } else {
+                    failedAttempts += 1
                     isError = true
                     entered = ""
+                    if (failedAttempts >= 5) {
+                        val multiplier = (failedAttempts / 5).coerceAtMost(4)
+                        lockoutSecondsLeft = 30 * multiplier
+                    }
                 }
             }
         }
     }
 
     fun onBackspace() {
+        if (lockoutSecondsLeft > 0) return
         if (entered.isNotEmpty()) {
             entered = entered.dropLast(1)
             isError = false
@@ -181,14 +205,19 @@ fun PinLockScreen(
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.height(6.dp))
+                val subtitleText = when {
+                    lockoutSecondsLeft > 0 -> "Köplab xato urinişlar! Xavfsizlik uçun $lockoutSecondsLeft soniya kuting..."
+                    isError -> "${stringResource(R.string.pin_wrong_error)} (${5 - (failedAttempts % 5)} ta uriniş qoldi)"
+                    else -> stringResource(R.string.pin_enter_subtitle)
+                }
                 Text(
-                    text = if (isError) {
-                        stringResource(R.string.pin_wrong_error)
-                    } else {
-                        stringResource(R.string.pin_enter_subtitle)
-                    },
+                    text = subtitleText,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isError || lockoutSecondsLeft > 0) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                     textAlign = TextAlign.Center,
                 )
 
@@ -204,7 +233,7 @@ fun PinLockScreen(
                                 .clip(CircleShape)
                                 .background(
                                     when {
-                                        isError -> MaterialTheme.colorScheme.error
+                                        isError || lockoutSecondsLeft > 0 -> MaterialTheme.colorScheme.error
                                         filled -> MaterialTheme.colorScheme.primary
                                         else -> MaterialTheme.colorScheme.surfaceVariant
                                     },

@@ -30,15 +30,8 @@ object SmsParser {
         val body = messageBody.trim()
         val lowerBody = body.lowercase(Locale.ROOT)
 
-        // Ignore OTP / verification code SMS messages
-        if (lowerBody.contains("tasdiqlash kodi") ||
-            lowerBody.contains("tasdiqlaş kodi") ||
-            lowerBody.contains("kod podtverjdeniya") ||
-            lowerBody.contains("verification code") ||
-            lowerBody.contains("hech kimga bermang") ||
-            lowerBody.contains("heç kimga bermang") ||
-            lowerBody.contains("nikomu ne soobshayte")
-        ) {
+        // Ignore OTP / verification code / 3D-Secure / password SMS messages
+        if (SmsSanitizer.containsSensitiveOtpOrSecret(body)) {
             return null
         }
 
@@ -111,13 +104,15 @@ object SmsParser {
             detectExpenseCategory(merchant, lowerBody)
         }
 
+        val sanitizedRawText = SmsSanitizer.sanitizeForAiAndStorage(body)
+
         return ParsedSmsTransaction(
             amount = amount,
             merchant = merchant,
             category = category,
             type = type,
             account = Account.CARD,
-            rawText = body,
+            rawText = sanitizedRawText,
             customCategoryName = matchedCustom?.name.orEmpty(),
             customCategoryIcon = matchedCustom?.iconKey.orEmpty(),
             customCategoryColor = matchedCustom?.colorHex ?: 0L,

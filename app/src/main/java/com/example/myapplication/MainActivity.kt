@@ -88,9 +88,25 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
         setContent {
             val container = appContainer()
+            val scope = rememberCoroutineScope()
             val themeMode by container.settingsRepository.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
             val pinCode by container.settingsRepository.pinCode.collectAsStateWithLifecycle(initialValue = null)
             val biometricEnabled by container.settingsRepository.biometricEnabled.collectAsStateWithLifecycle(initialValue = true)
+            val screenSecurityEnabled by container.settingsRepository.screenSecurityEnabled.collectAsStateWithLifecycle(initialValue = true)
+            val autoLockEnabled by container.settingsRepository.autoLockEnabled.collectAsStateWithLifecycle(initialValue = true)
+
+            // Apply or clear FLAG_SECURE dynamically to protect balances from screenshots / screen recording / Recent Apps
+            LaunchedEffect(screenSecurityEnabled, pinCode) {
+                val shouldSecure = screenSecurityEnabled && !pinCode.isNullOrEmpty()
+                if (shouldSecure) {
+                    window.setFlags(
+                        android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                        android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                    )
+                } else {
+                    window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                }
+            }
 
             val permissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -98,6 +114,9 @@ class MainActivity : FragmentActivity() {
             )
 
             LaunchedEffect(Unit) {
+                // Clean up any leftover downloaded APK files in cache/updates
+                container.updateManager.cleanupCachedApks()
+
                 val permissionsToRequest = mutableListOf<String>()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -121,6 +140,35 @@ class MainActivity : FragmentActivity() {
             MyApplicationTheme(darkTheme = useDarkTheme) {
                 var showSplash by rememberSaveable { mutableStateOf(true) }
                 var pinUnlocked by rememberSaveable { mutableStateOf(false) }
+                var lastBackgroundTimestamp by rememberSaveable { mutableStateOf(0L) }
+
+                // Automatically re-lock when returning from background after 60 seconds
+                val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+                androidx.compose.runtime.DisposableEffect(lifecycleOwner, autoLockEnabled, pinCode) {
+                    val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                        when (event) {
+                            androidx.lifecycle.Lifecycle.Event.ON_STOP -> {
+                                if (pinUnlocked && !pinCode.isNullOrEmpty()) {
+                                    lastBackgroundTimestamp = System.currentTimeMillis()
+                                }
+                            }
+                            androidx.lifecycle.Lifecycle.Event.ON_START -> {
+                                if (autoLockEnabled &&
+                                    pinUnlocked &&
+                                    !pinCode.isNullOrEmpty() &&
+                                    lastBackgroundTimestamp > 0L &&
+                                    (System.currentTimeMillis() - lastBackgroundTimestamp) >= 60_000L
+                                ) {
+                                    pinUnlocked = false
+                                    lastBackgroundTimestamp = 0L
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                }
 
                 when {
                     showSplash -> {
@@ -135,13 +183,24 @@ class MainActivity : FragmentActivity() {
                         }
                         PinLockScreen(
                             expectedPin = pinCode!!,
-                            onUnlocked = { pinUnlocked = true },
+                            onUnlocked = {
+                                pinUnlocked = true
+                                lastBackgroundTimestamp = 0L
+                            },
                             biometricAvailable = isBiometricAvailable && biometricEnabled,
                             onBiometricClick = {
                                 com.example.myapplication.ui.auth.BiometricHelper.promptBiometric(
                                     activity = this@MainActivity,
-                                    onSuccess = { pinUnlocked = true },
+                                    onSuccess = {
+                                        pinUnlocked = true
+                                        lastBackgroundTimestamp = 0L
+                                    },
                                 )
+                            },
+                            onMigrateLegacyPin = { rawPin ->
+                                scope.launch {
+                                    container.settingsRepository.setPinCode(rawPin)
+                                }
                             },
                         )
                     }

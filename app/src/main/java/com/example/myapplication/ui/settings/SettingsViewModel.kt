@@ -37,6 +37,8 @@ data class SettingsUiState(
     val monthlyBudgetText: String = "",
     val pinCode: String = "",
     val biometricEnabled: Boolean = true,
+    val screenSecurityEnabled: Boolean = true,
+    val autoLockEnabled: Boolean = true,
     val smsAutoDetectEnabled: Boolean = true,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val customCategories: List<CustomCategory> = emptyList(),
@@ -63,6 +65,8 @@ class SettingsViewModel(
         budgetInput,
         settingsRepo.pinCode,
         settingsRepo.biometricEnabled,
+        settingsRepo.screenSecurityEnabled,
+        settingsRepo.autoLockEnabled,
         settingsRepo.smsAutoDetectEnabled,
         settingsRepo.themeMode,
         settingsRepo.customCategories,
@@ -71,14 +75,18 @@ class SettingsViewModel(
         val input = args[1] as String?
         val pin = args[2] as String
         val biometric = args[3] as Boolean
-        val smsAutoDetect = args[4] as Boolean
-        val theme = args[5] as ThemeMode
-        val customCats = args[6] as List<CustomCategory>
+        val screenSec = args[4] as Boolean
+        val autoLock = args[5] as Boolean
+        val smsAutoDetect = args[6] as Boolean
+        val theme = args[7] as ThemeMode
+        val customCats = args[8] as List<CustomCategory>
         SettingsUiState(
             monthlyBudget = budget,
             monthlyBudgetText = input ?: if (budget > 0) budget.toString() else "",
             pinCode = pin,
             biometricEnabled = biometric,
+            screenSecurityEnabled = screenSec,
+            autoLockEnabled = autoLock,
             smsAutoDetectEnabled = smsAutoDetect,
             themeMode = theme,
             customCategories = customCats,
@@ -102,6 +110,18 @@ class SettingsViewModel(
     fun setBiometricEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepo.setBiometricEnabled(enabled)
+        }
+    }
+
+    fun setScreenSecurityEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepo.setScreenSecurityEnabled(enabled)
+        }
+    }
+
+    fun setAutoLockEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepo.setAutoLockEnabled(enabled)
         }
     }
 

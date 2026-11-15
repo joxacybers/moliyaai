@@ -33,11 +33,17 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { it[KEY_BUDGET] = value.coerceAtLeast(0) }
     }
 
-    /** 4-digit PIN code; empty string means no PIN lock. */
+    /** 4-digit PIN code (stored as salted PBKDF2 hash); empty string means no PIN lock. */
     val pinCode: Flow<String> = context.dataStore.data.map { it[KEY_PIN_CODE] ?: "" }
 
     suspend fun setPinCode(pin: String) {
-        context.dataStore.edit { it[KEY_PIN_CODE] = pin }
+        val trimmed = pin.trim()
+        val toStore = when {
+            trimmed.isEmpty() -> ""
+            com.example.myapplication.security.SecurityCryptoHelper.isHashedPin(trimmed) -> trimmed
+            else -> com.example.myapplication.security.SecurityCryptoHelper.hashPin(trimmed)
+        }
+        context.dataStore.edit { it[KEY_PIN_CODE] = toStore }
     }
 
     /** Whether biometric (fingerprint/face unlock) is enabled. */
@@ -45,6 +51,20 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBiometricEnabled(enabled: Boolean) {
         context.dataStore.edit { it[KEY_BIOMETRIC_ENABLED] = enabled }
+    }
+
+    /** Whether FLAG_SECURE (screenshot / screen-recording / recent-apps blur protection) is enabled. */
+    val screenSecurityEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_SCREEN_SECURITY] ?: true }
+
+    suspend fun setScreenSecurityEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_SCREEN_SECURITY] = enabled }
+    }
+
+    /** Whether the app automatically re-locks after staying in background. */
+    val autoLockEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_AUTO_LOCK] ?: true }
+
+    suspend fun setAutoLockEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_AUTO_LOCK] = enabled }
     }
 
     /** Whether automatic SMS expense detection from bank messages is enabled. */
@@ -112,11 +132,15 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { it[KEY_LAST_AUTO_MONTH] = yearMonth }
     }
 
-    /** Custom OpenAI API key override if set by user; falls back to built-in key. */
-    val customOpenAiKey: Flow<String> = context.dataStore.data.map { it[KEY_OPENAI_KEY] ?: "" }
+    /** Custom OpenAI API key override if set by user (encrypted via Android Keystore AES-256-GCM). */
+    val customOpenAiKey: Flow<String> = context.dataStore.data.map { prefs ->
+        val raw = prefs[KEY_OPENAI_KEY] ?: ""
+        com.example.myapplication.security.SecurityCryptoHelper.decryptSecret(raw)
+    }
 
     suspend fun setCustomOpenAiKey(key: String) {
-        context.dataStore.edit { it[KEY_OPENAI_KEY] = key.trim() }
+        val encrypted = com.example.myapplication.security.SecurityCryptoHelper.encryptSecret(key)
+        context.dataStore.edit { it[KEY_OPENAI_KEY] = encrypted }
     }
 
     fun cachedAdvice(period: PeriodType): Flow<CachedAdvice?> = context.dataStore.data.map { prefs ->
@@ -145,6 +169,8 @@ class SettingsRepository(private val context: Context) {
         val KEY_BUDGET = longPreferencesKey("monthly_budget")
         val KEY_PIN_CODE = stringPreferencesKey("app_pin_code")
         val KEY_BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
+        val KEY_SCREEN_SECURITY = booleanPreferencesKey("screen_security_flag_secure")
+        val KEY_AUTO_LOCK = booleanPreferencesKey("auto_lock_on_background")
         val KEY_SMS_AUTO_DETECT = booleanPreferencesKey("sms_auto_detect_enabled")
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
         val KEY_CUSTOM_CATEGORIES = stringPreferencesKey("custom_categories_json")

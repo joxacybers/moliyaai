@@ -175,6 +175,7 @@ object AppNotificationHelper {
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setContentIntent(contentPendingIntent)
             .setAutoCancel(true)
             .addAction(R.drawable.ic_launcher_foreground, "✅ Tasdiqlaş", confirmPendingIntent)
