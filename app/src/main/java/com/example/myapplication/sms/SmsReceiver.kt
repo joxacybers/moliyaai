@@ -33,8 +33,19 @@ class SmsReceiver : BroadcastReceiver() {
                 val isEnabled = container.settingsRepository.smsAutoDetectEnabled.first()
                 if (!isEnabled) return@launch
 
-                val parsed = SmsParser.parse(sender, fullBody) ?: return@launch
-                AppNotificationHelper.showSmsExpenseDetected(context, parsed)
+                val customCategories = container.settingsRepository.customCategories.first()
+                val customApiKey = container.settingsRepository.customOpenAiKey.first()
+
+                val initialParsed = SmsParser.parse(sender, fullBody, customCategories) ?: return@launch
+                val aiEnriched = container.aiAdvisor.analyzeSmsForDraft(
+                    sender = sender,
+                    rawSms = fullBody,
+                    initialParsed = initialParsed,
+                    customCategories = customCategories,
+                    customApiKey = customApiKey,
+                )
+
+                AppNotificationHelper.saveAndShowSmsDraft(context, aiEnriched)
             } catch (_: Exception) {
             } finally {
                 pendingResult.finish()

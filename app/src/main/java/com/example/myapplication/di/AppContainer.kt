@@ -4,11 +4,14 @@ import android.content.Context
 import com.example.myapplication.ai.AiAdvisor
 import com.example.myapplication.data.BudgetRepository
 import com.example.myapplication.data.DebtRepository
+import com.example.myapplication.data.NotificationRepository
+import com.example.myapplication.data.SavingsRepository
 import com.example.myapplication.data.SettingsRepository
 import com.example.myapplication.data.SubscriptionRepository
 import com.example.myapplication.data.TransactionRepository
 import com.example.myapplication.data.backup.BackupManager
 import com.example.myapplication.data.db.AppDatabase
+import com.example.myapplication.updater.UpdateManager
 
 /** Simple manual DI container — enough for a single-module app. */
 class AppContainer(context: Context) {
@@ -28,15 +31,18 @@ class AppContainer(context: Context) {
     val debtRepository: DebtRepository by lazy {
         DebtRepository(database.debtDao())
     }
-    val savingsRepository: com.example.myapplication.data.SavingsRepository by lazy {
-        com.example.myapplication.data.SavingsRepository(database.savingsGoalDao(), appContext)
+    val savingsRepository: SavingsRepository by lazy {
+        SavingsRepository(database.savingsGoalDao(), appContext)
+    }
+    val notificationRepository: NotificationRepository by lazy {
+        NotificationRepository(database.appNotificationDao())
     }
     val settingsRepository: SettingsRepository by lazy { SettingsRepository(appContext) }
     val backupManager: BackupManager by lazy {
         BackupManager(appContext, transactionRepository, settingsRepository)
     }
     val aiAdvisor: AiAdvisor by lazy { AiAdvisor(appContext) }
-    val updateManager: com.example.myapplication.updater.UpdateManager by lazy {
-        com.example.myapplication.updater.UpdateManager(appContext)
+    val updateManager: UpdateManager by lazy {
+        UpdateManager(appContext)
     }
 }

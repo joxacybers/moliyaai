@@ -34,3 +34,6 @@ data object DebtsRoute : AppRoute
 
 @Serializable
 data object SavingsRoute : AppRoute
+
+@Serializable
+data object NotificationsRoute : AppRoute

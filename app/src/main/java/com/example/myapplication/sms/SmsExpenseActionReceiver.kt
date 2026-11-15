@@ -27,10 +27,31 @@ class SmsExpenseActionReceiver : BroadcastReceiver() {
             NotificationManagerCompat.from(context).cancel(notificationId)
         }
 
+        val appNotificationId = intent.getLongExtra(EXTRA_APP_NOTIFICATION_ID, 0L)
+        val app = context.applicationContext as? FinanceApp ?: return
+        val container = app.container
+
+        if (intent.action == ACTION_DISMISS) {
+            if (appNotificationId > 0L) {
+                val pendingResult = goAsync()
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        container.notificationRepository.markAsRead(appNotificationId)
+                    } finally {
+                        pendingResult.finish()
+                    }
+                }
+            }
+            return
+        }
+
         if (intent.action == ACTION_CONFIRM) {
             val amount = intent.getLongExtra(EXTRA_AMOUNT, 0L)
             val merchant = intent.getStringExtra(EXTRA_MERCHANT) ?: "Karta toʻlovi"
             val categoryName = intent.getStringExtra(EXTRA_CATEGORY) ?: Category.FOOD.name
+            val customCatName = intent.getStringExtra(EXTRA_CUSTOM_CATEGORY_NAME).orEmpty()
+            val customCatIcon = intent.getStringExtra(EXTRA_CUSTOM_CATEGORY_ICON).orEmpty()
+            val customCatColor = intent.getLongExtra(EXTRA_CUSTOM_CATEGORY_COLOR, 0L)
             val typeName = intent.getStringExtra(EXTRA_TYPE) ?: TransactionType.EXPENSE.name
             val accountName = intent.getStringExtra(EXTRA_ACCOUNT) ?: Account.CARD.name
 
@@ -40,9 +61,6 @@ class SmsExpenseActionReceiver : BroadcastReceiver() {
 
             if (amount <= 0) return
 
-            val app = context.applicationContext as? FinanceApp ?: return
-            val container = app.container
-
             val entity = TransactionEntity(
                 amount = amount,
                 type = type,
@@ -50,12 +68,18 @@ class SmsExpenseActionReceiver : BroadcastReceiver() {
                 account = account,
                 epochDay = LocalDate.now().toEpochDay(),
                 note = merchant,
+                customCategoryName = customCatName,
+                customCategoryIcon = customCatIcon,
+                customCategoryColor = customCatColor,
             )
 
             val pendingResult = goAsync()
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     container.transactionRepository.save(entity)
+                    if (appNotificationId > 0L) {
+                        container.notificationRepository.markActionCompleted(appNotificationId)
+                    }
 
                     // Budget alert check if expense
                     if (type == TransactionType.EXPENSE) {
@@ -72,7 +96,7 @@ class SmsExpenseActionReceiver : BroadcastReceiver() {
 
                             val percent = (monthSpent * 100 / budget.limitAmount).toInt()
                             if (percent >= 80) {
-                                val catLabel = context.getString(category.labelRes)
+                                val catLabel = customCatName.ifBlank { context.getString(category.labelRes) }
                                 AppNotificationHelper.showBudgetAlert(
                                     context = context,
                                     categoryName = catLabel,
@@ -87,7 +111,7 @@ class SmsExpenseActionReceiver : BroadcastReceiver() {
                     launch(Dispatchers.Main) {
                         Toast.makeText(
                             context,
-                            "✅ $merchant: ${formatAmount(amount)} soʻm kiritildi",
+                            "✅ $merchant: ${formatAmount(amount)} soʻm amallarga qoʻshildi",
                             Toast.LENGTH_LONG,
                         ).show()
                     }
@@ -103,9 +127,13 @@ class SmsExpenseActionReceiver : BroadcastReceiver() {
         const val ACTION_DISMISS = "com.example.myapplication.sms.ACTION_DISMISS"
 
         const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
+        const val EXTRA_APP_NOTIFICATION_ID = "extra_app_notification_id"
         const val EXTRA_AMOUNT = "extra_amount"
         const val EXTRA_MERCHANT = "extra_merchant"
         const val EXTRA_CATEGORY = "extra_category"
+        const val EXTRA_CUSTOM_CATEGORY_NAME = "extra_custom_category_name"
+        const val EXTRA_CUSTOM_CATEGORY_ICON = "extra_custom_category_icon"
+        const val EXTRA_CUSTOM_CATEGORY_COLOR = "extra_custom_category_color"
         const val EXTRA_TYPE = "extra_type"
         const val EXTRA_ACCOUNT = "extra_account"
     }

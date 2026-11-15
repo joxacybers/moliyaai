@@ -3,8 +3,10 @@ package com.example.myapplication.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.ai.CachedAdvice
+import com.example.myapplication.data.NotificationRepository
 import com.example.myapplication.data.SettingsRepository
 import com.example.myapplication.data.TransactionRepository
+import com.example.myapplication.data.db.AppNotificationType
 import com.example.myapplication.data.db.TransactionEntity
 import com.example.myapplication.data.model.Account
 import com.example.myapplication.data.model.TransactionType
@@ -28,18 +30,22 @@ data class DashboardUiState(
     val topCategoriesThisMonth: List<CategoryAmount> = emptyList(),
     val recentTransactions: List<TransactionEntity> = emptyList(),
     val latestAdvice: CachedAdvice? = null,
+    val unreadNotificationsCount: Int = 0,
+    val pendingSmsDraftsCount: Int = 0,
 )
 
 class DashboardViewModel(
     private val transactionsRepo: TransactionRepository,
     settingsRepo: SettingsRepository,
+    notificationRepo: NotificationRepository,
 ) : ViewModel() {
 
     val uiState: StateFlow<DashboardUiState> = combine(
         transactionsRepo.observeAll(),
         settingsRepo.monthlyBudget,
         settingsRepo.cachedAdvice(PeriodType.MONTH),
-    ) { transactions, budget, advice ->
+        notificationRepo.observeAll(),
+    ) { transactions, budget, advice, notifications ->
         val today = LocalDate.now()
         val week = StatsCalculator.summaryFor(transactions, PeriodType.WEEK, today)
         val month = StatsCalculator.summaryFor(transactions, PeriodType.MONTH, today)
@@ -50,6 +56,11 @@ class DashboardViewModel(
             type = TransactionType.EXPENSE,
         ).take(5)
 
+        val unreadCount = notifications.count { !it.isRead }
+        val pendingDrafts = notifications.count {
+            it.type == AppNotificationType.SMS_DRAFT && !it.isActionCompleted
+        }
+
         DashboardUiState(
             balance = StatsCalculator.balance(transactions),
             accountBalances = StatsCalculator.accountBalances(transactions),
@@ -59,6 +70,8 @@ class DashboardViewModel(
             topCategoriesThisMonth = topCategories,
             recentTransactions = transactions.take(5),
             latestAdvice = advice,
+            unreadNotificationsCount = unreadCount,
+            pendingSmsDraftsCount = pendingDrafts,
         )
     }.stateIn(
         scope = viewModelScope,

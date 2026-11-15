@@ -11,4 +11,8 @@ data class ParsedSmsTransaction(
     val type: TransactionType = TransactionType.EXPENSE,
     val account: Account = Account.CARD,
     val rawText: String,
+    val customCategoryName: String = "",
+    val customCategoryIcon: String = "",
+    val customCategoryColor: Long = 0L,
+    val aiCategorized: Boolean = false,
 )

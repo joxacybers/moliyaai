@@ -8,7 +8,9 @@ import android.os.Build
 import android.os.LocaleList
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,23 +20,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -81,6 +88,7 @@ import com.example.myapplication.ui.common.SectionTitle
 import com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation
 import com.example.myapplication.ui.common.appContainer
 import com.example.myapplication.ui.common.customCategoryIconRes
+import com.example.myapplication.ui.common.formatAmount
 import com.example.myapplication.updater.ReleaseInfo
 import com.example.myapplication.updater.UpdateCheckResult
 import kotlinx.coroutines.launch
@@ -110,6 +118,8 @@ fun SettingsScreen(
     var showRestoreConfirm by remember { mutableStateOf<Uri?>(null) }
     var showClearConfirm by remember { mutableStateOf(false) }
     var showPinDialog by remember { mutableStateOf(false) }
+    var showBudgetDialog by remember { mutableStateOf(false) }
+    var showManageCategoriesDialog by remember { mutableStateOf(false) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
 
     var isCheckingUpdate by remember { mutableStateOf(false) }
@@ -191,234 +201,101 @@ fun SettingsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // 1. Custom Categories Management Section
+            // 1. Moliya va Avtomatlashtirish (Budget, Custom Categories, SMS Auto-Detect)
             item {
-                SectionTitle("Maxsus toifalar (Kategoriyalar)")
+                SectionTitle("Moliya va Avtomatlashtirish")
                 Spacer(Modifier.height(8.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Text(
-                            text = "Oʻzingizga mos yangi kirim yoki chiqim toifalarini va ikonkalarini qoʻshing.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-
-                        if (state.customCategories.isNotEmpty()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                state.customCategories.forEach { cat ->
-                                    val tint = Color(cat.colorHex)
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(36.dp)
-                                                .clip(CircleShape)
-                                                .background(tint.copy(alpha = 0.15f)),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(customCategoryIconRes(cat.iconKey)),
-                                                contentDescription = cat.name,
-                                                tint = tint,
-                                                modifier = Modifier.size(18.dp),
-                                            )
-                                        }
-                                        Spacer(Modifier.width(10.dp))
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(
-                                                text = cat.name,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.SemiBold,
-                                            )
-                                            Text(
-                                                text = if (cat.type == TransactionType.EXPENSE) "Chiqim" else "Kirim",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            )
-                                        }
-                                        IconButton(onClick = { viewModel.deleteCustomCategory(cat.id) }) {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "Oʻchirish",
-                                                tint = MaterialTheme.colorScheme.outline,
-                                            )
-                                        }
-                                    }
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                                    )
-                                }
-                            }
-                        }
-
-                        Button(
-                            onClick = { showAddCategoryDialog = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("Yangi toifa qoʻshish")
-                        }
-                    }
-                }
-            }
-
-            // 2. Security / PIN Code section
-            item {
-                SectionTitle(stringResource(R.string.security_section))
-                Spacer(Modifier.height(8.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column {
+                        val budgetVal = state.monthlyBudgetText.toLongOrNull() ?: 0L
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_bar_chart,
+                            iconTint = Color(0xFF1E88E5),
+                            title = stringResource(R.string.budget_title),
+                            subtitle = if (budgetVal > 0L) {
+                                "${formatAmount(budgetVal)} soʻm / oy"
+                            } else {
+                                "Belgilanmagan — oʻrnatish uchun bosing"
+                            },
+                            onClick = { showBudgetDialog = true },
+                            trailing = {
                                 Icon(
-                                    painter = painterResource(R.drawable.ic_lock),
+                                    Icons.Default.Edit,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(22.dp),
+                                    modifier = Modifier.size(18.dp),
                                 )
-                                Spacer(Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = stringResource(R.string.pin_lock_title),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                    Text(
-                                        text = if (state.pinCode.isNotEmpty()) {
-                                            stringResource(R.string.pin_status_enabled)
-                                        } else {
-                                            stringResource(R.string.pin_status_disabled)
-                                        },
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                        }
+                            },
+                        )
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Button(
-                                onClick = { showPinDialog = true },
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                Text(
-                                    if (state.pinCode.isNotEmpty()) {
-                                        stringResource(R.string.pin_change_action)
-                                    } else {
-                                        stringResource(R.string.pin_set_action)
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        )
+
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_cat_shopping,
+                            iconTint = Color(0xFF8E24AA),
+                            title = "Maxsus toifalar (Kategoriyalar)",
+                            subtitle = if (state.customCategories.isEmpty()) {
+                                "Shaxsiy kirim va chiqim toifalarini qoʻshish"
+                            } else {
+                                "${state.customCategories.size} ta shaxsiy toifa mavjud"
+                            },
+                            onClick = { showManageCategoriesDialog = true },
+                            trailing = {
+                                FilledTonalButton(
+                                    onClick = { showAddCategoryDialog = true },
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                    modifier = Modifier.height(32.dp),
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Qoʻshish", style = MaterialTheme.typography.labelMedium)
+                                }
+                            },
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        )
+
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_auto_awesome,
+                            iconTint = Color(0xFF00897B),
+                            title = stringResource(R.string.sms_auto_detect_title),
+                            subtitle = "Xarid va sotuv SMS xabarlarini AI qoralamaga saqlash",
+                            onClick = null,
+                            trailing = {
+                                Switch(
+                                    checked = state.smsAutoDetectEnabled,
+                                    onCheckedChange = { enabled ->
+                                        if (enabled) {
+                                            val hasPermission = ContextCompat.checkSelfPermission(
+                                                context,
+                                                Manifest.permission.RECEIVE_SMS,
+                                            ) == PackageManager.PERMISSION_GRANTED
+                                            if (hasPermission) {
+                                                viewModel.setSmsAutoDetectEnabled(true)
+                                            } else {
+                                                smsPermissionLauncher.launch(Manifest.permission.RECEIVE_SMS)
+                                            }
+                                        } else {
+                                            viewModel.setSmsAutoDetectEnabled(false)
+                                        }
                                     },
                                 )
-                            }
-                            if (state.pinCode.isNotEmpty()) {
-                                OutlinedButton(
-                                    onClick = { viewModel.setPinCode("") },
-                                    modifier = Modifier.weight(1f),
-                                ) {
-                                    Text(stringResource(R.string.pin_disable_action))
-                                }
-                            }
-                        }
-
-                        if (state.pinCode.isNotEmpty()) {
-                            HorizontalDivider()
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        text = stringResource(R.string.biometric_unlock_title),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.biometric_unlock_desc),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                Switch(
-                                    checked = state.biometricEnabled,
-                                    onCheckedChange = viewModel::setBiometricEnabled,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // SMS Auto-Detect
-            item {
-                SectionTitle(stringResource(R.string.sms_auto_detect_title))
-                Spacer(Modifier.height(8.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.sms_auto_detect_title),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                text = stringResource(R.string.sms_auto_detect_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Switch(
-                            checked = state.smsAutoDetectEnabled,
-                            onCheckedChange = { enabled ->
-                                if (enabled) {
-                                    val hasPermission = ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.RECEIVE_SMS,
-                                    ) == PackageManager.PERMISSION_GRANTED
-                                    if (hasPermission) {
-                                        viewModel.setSmsAutoDetectEnabled(true)
-                                    } else {
-                                        smsPermissionLauncher.launch(Manifest.permission.RECEIVE_SMS)
-                                    }
-                                } else {
-                                    viewModel.setSmsAutoDetectEnabled(false)
-                                }
                             },
                         )
                     }
                 }
             }
 
-            // 3. Appearance (Theme & Language)
+            // 2. Koʻrinish va Til (Appearance & Language)
             item {
                 SectionTitle(stringResource(R.string.appearance_section))
                 Spacer(Modifier.height(8.dp))
@@ -426,10 +303,14 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
                 ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
                         Text(
                             text = stringResource(R.string.theme_title),
                             style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -473,73 +354,123 @@ fun SettingsScreen(
                             )
                         }
 
-                        Text(
-                            text = stringResource(R.string.language),
-                            style = MaterialTheme.typography.labelLarge,
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                         )
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(
-                                onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                        context.getSystemService(LocaleManager::class.java)
-                                            ?.applicationLocales = LocaleList.forLanguageTags("uz")
-                                    }
-                                },
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                Text(stringResource(R.string.language_uzbek))
-                            }
-                            OutlinedButton(
-                                onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                        context.getSystemService(LocaleManager::class.java)
-                                            ?.applicationLocales = LocaleList.forLanguageTags("en")
-                                    }
-                                },
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                Text(stringResource(R.string.language_english))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.language),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                            context.getSystemService(LocaleManager::class.java)
+                                                ?.applicationLocales = LocaleList.forLanguageTags("uz")
+                                        }
+                                    },
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                    modifier = Modifier.height(34.dp),
+                                ) {
+                                    Text(stringResource(R.string.language_uzbek), style = MaterialTheme.typography.labelMedium)
+                                }
+                                OutlinedButton(
+                                    onClick = {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                            context.getSystemService(LocaleManager::class.java)
+                                                ?.applicationLocales = LocaleList.forLanguageTags("en")
+                                        }
+                                    },
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                    modifier = Modifier.height(34.dp),
+                                ) {
+                                    Text(stringResource(R.string.language_english), style = MaterialTheme.typography.labelMedium)
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // 4. Budget limit
+            // 3. Xavfsizlik (PIN & Biometrics)
             item {
-                SectionTitle(stringResource(R.string.budget_title))
+                SectionTitle(stringResource(R.string.security_section))
                 Spacer(Modifier.height(8.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
                 ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedTextField(
-                            value = state.monthlyBudgetText,
-                            onValueChange = viewModel::setBudgetText,
-                            label = { Text(stringResource(R.string.budget_title)) },
-                            placeholder = { Text(stringResource(R.string.budget_hint)) },
-                            suffix = { Text(stringResource(R.string.currency_suffix)) },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                                imeAction = ImeAction.Done,
-                            ),
-                            visualTransformation = ThousandsSeparatorVisualTransformation(),
-                            keyboardActions = KeyboardActions(onDone = { viewModel.saveBudget() }),
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
+                    Column {
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_lock,
+                            iconTint = Color(0xFF3949AB),
+                            title = stringResource(R.string.pin_lock_title),
+                            subtitle = if (state.pinCode.isNotEmpty()) {
+                                stringResource(R.string.pin_status_enabled)
+                            } else {
+                                stringResource(R.string.pin_status_disabled)
+                            },
+                            onClick = { showPinDialog = true },
+                            trailing = {
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    FilledTonalButton(
+                                        onClick = { showPinDialog = true },
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(32.dp),
+                                    ) {
+                                        Text(
+                                            text = if (state.pinCode.isNotEmpty()) "Oʻzgartirish" else "Oʻrnatish",
+                                            style = MaterialTheme.typography.labelMedium,
+                                        )
+                                    }
+                                    if (state.pinCode.isNotEmpty()) {
+                                        TextButton(
+                                            onClick = { viewModel.setPinCode("") },
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                            modifier = Modifier.height(32.dp),
+                                        ) {
+                                            Text(
+                                                text = "Oʻchirish",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.error,
+                                            )
+                                        }
+                                    }
+                                }
+                            },
                         )
-                        Button(
-                            onClick = viewModel::saveBudget,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.action_save))
+
+                        if (state.pinCode.isNotEmpty()) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            )
+                            SettingsRowItem(
+                                iconRes = R.drawable.ic_shield,
+                                iconTint = Color(0xFF00897B),
+                                title = stringResource(R.string.biometric_unlock_title),
+                                subtitle = stringResource(R.string.biometric_unlock_desc),
+                                onClick = null,
+                                trailing = {
+                                    Switch(
+                                        checked = state.biometricEnabled,
+                                        onCheckedChange = viewModel::setBiometricEnabled,
+                                    )
+                                },
+                            )
                         }
                     }
                 }
             }
 
-            // 5. Data & backup
+            // 4. Maʼlumotlar va Zaxira (Backup, Export, Demo, Clear)
             item {
                 SectionTitle(stringResource(R.string.data_backup))
                 Spacer(Modifier.height(8.dp))
@@ -547,63 +478,110 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
                 ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            text = stringResource(R.string.backup_note),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        OutlinedButton(
+                    Column {
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_savings,
+                            iconTint = Color(0xFF43A047),
+                            title = stringResource(R.string.backup_export),
+                            subtitle = "Barcha amallar va obunalarni JSON faylga saqlash",
                             onClick = {
                                 val filename = "moliya-backup-${LocalDate.now()}.json"
                                 backupExportLauncher.launch(filename)
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.backup_export))
-                        }
-                        OutlinedButton(
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        )
+
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_build,
+                            iconTint = Color(0xFF1E88E5),
+                            title = stringResource(R.string.backup_restore),
+                            subtitle = "Oldin saqlangan JSON zaxira faylidan tiklash",
                             onClick = { backupImportLauncher.launch(arrayOf("application/json", "*/*")) },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.backup_restore))
-                        }
-                        OutlinedButton(
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        )
+
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_bar_chart,
+                            iconTint = Color(0xFFFB8C00),
+                            title = stringResource(R.string.export_csv),
+                            subtitle = "Excel va Google Sheets uchun jadval koʻrinishida saqlash",
                             onClick = {
                                 val filename = "moliya-${LocalDate.now()}.csv"
                                 csvExportLauncher.launch(filename)
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.export_csv))
-                        }
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        )
+
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_trophy,
+                            iconTint = Color(0xFF8E24AA),
+                            title = stringResource(R.string.demo_data),
+                            subtitle = "Ilova imkoniyatlarini koʻrish uchun namuna amallar qoʻshish",
+                            onClick = viewModel::loadDemoData,
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        )
+
+                        SettingsRowItem(
+                            iconRes = R.drawable.ic_cat_loans,
+                            iconTint = MaterialTheme.colorScheme.error,
+                            title = stringResource(R.string.clear_data),
+                            subtitle = "Barcha kiritilgan amallar va tarixni oʻchirish",
+                            titleColor = MaterialTheme.colorScheme.error,
+                            onClick = { showClearConfirm = true },
+                        )
                     }
                 }
             }
 
-            // 6. AI status card
+            // 5. AI Tizimi va Ilova yangilanishi
             item {
-                SectionTitle(stringResource(R.string.ai_status))
+                SectionTitle("AI Tizimi va Ilova haqida")
                 Spacer(Modifier.height(8.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.75f),
                     ),
                 ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = state.modelName,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            )
+                            Column {
+                                Text(
+                                    text = state.modelName,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                )
+                                Text(
+                                    text = stringResource(R.string.ai_status_ready),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
+                                )
+                            }
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
                                 color = MaterialTheme.colorScheme.primary,
@@ -613,40 +591,11 @@ fun SettingsScreen(
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                 )
                             }
                         }
-                        Text(
-                            text = stringResource(R.string.ai_status_ready),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                        )
-                    }
-                }
-            }
 
-            // 7. Developer / Demo tools & App Version
-            item {
-                SectionTitle(stringResource(R.string.developer_section))
-                Spacer(Modifier.height(8.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedButton(
-                            onClick = viewModel::loadDemoData,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.demo_data))
-                        }
-                        OutlinedButton(
-                            onClick = { showClearConfirm = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.clear_data), color = MaterialTheme.colorScheme.error)
-                        }
                         Button(
                             onClick = {
                                 isCheckingUpdate = true
@@ -658,7 +607,7 @@ fun SettingsScreen(
                                         is UpdateCheckResult.UpToDate -> {
                                             val currentVer = try {
                                                 context.packageManager.getPackageInfo(context.packageName, 0).versionName
-                                            } catch (_: Exception) { "v2.1" }
+                                            } catch (_: Exception) { "2.2" }
                                             snackbarHostState.showSnackbar(
                                                 context.getString(R.string.up_to_date, currentVer),
                                             )
@@ -680,20 +629,161 @@ fun SettingsScreen(
                                 else stringResource(R.string.check_for_updates),
                             )
                         }
-                        Spacer(Modifier.height(4.dp))
+
                         val currentVer = try {
                             context.packageManager.getPackageInfo(context.packageName, 0).versionName
-                        } catch (_: Exception) { "2.1" }
+                        } catch (_: Exception) { "2.2" }
                         Text(
                             text = "Moliya AI v$currentVer · GitHub OTA Auto-Update Ready",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.75f),
                             modifier = Modifier.align(Alignment.CenterHorizontally),
                         )
                     }
                 }
             }
         }
+    }
+
+    // Monthly Budget Dialog
+    if (showBudgetDialog) {
+        var budgetInput by remember(state.monthlyBudgetText) { mutableStateOf(state.monthlyBudgetText) }
+        AlertDialog(
+            onDismissRequest = { showBudgetDialog = false },
+            title = { Text(stringResource(R.string.budget_title), fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Bir oylik umumiy xarajatlar chegarasini kiriting (0 — cheklovsiz):",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = budgetInput,
+                        onValueChange = { budgetInput = it.filter { ch -> ch.isDigit() } },
+                        label = { Text(stringResource(R.string.budget_title)) },
+                        placeholder = { Text(stringResource(R.string.budget_hint)) },
+                        suffix = { Text(stringResource(R.string.currency_suffix)) },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                        visualTransformation = ThousandsSeparatorVisualTransformation(),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                viewModel.setBudgetText(budgetInput)
+                                viewModel.saveBudget()
+                                showBudgetDialog = false
+                            },
+                        ),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.setBudgetText(budgetInput)
+                        viewModel.saveBudget()
+                        showBudgetDialog = false
+                    },
+                ) {
+                    Text(stringResource(R.string.action_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBudgetDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
+    }
+
+    // Manage Custom Categories Dialog
+    if (showManageCategoriesDialog) {
+        AlertDialog(
+            onDismissRequest = { showManageCategoriesDialog = false },
+            title = { Text("Maxsus toifalar", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    if (state.customCategories.isEmpty()) {
+                        Text(
+                            text = "Hozircha shaxsiy toifalar qoʻshilmagan. Pastdagi tugma orqali yangi toifa va ikonka tanlang.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 280.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(state.customCategories, key = { it.id }) { cat ->
+                                val tint = Color(cat.colorHex)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(tint.copy(alpha = 0.15f)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(customCategoryIconRes(cat.iconKey)),
+                                            contentDescription = cat.name,
+                                            tint = tint,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                    }
+                                    Spacer(Modifier.width(10.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = cat.name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                        Text(
+                                            text = if (cat.type == TransactionType.EXPENSE) "Chiqim" else "Kirim",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    IconButton(onClick = { viewModel.deleteCustomCategory(cat.id) }) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Oʻchirish",
+                                            tint = MaterialTheme.colorScheme.error,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Button(
+                        onClick = { showAddCategoryDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Yangi toifa qoʻshish")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showManageCategoriesDialog = false }) {
+                    Text("Yopish")
+                }
+            },
+        )
     }
 
     if (showAddCategoryDialog) {
@@ -758,7 +848,7 @@ fun SettingsScreen(
                 }
             },
             confirmButton = {
-                Button(
+                TextButton(
                     onClick = {
                         if (pinInput.length == 4) {
                             viewModel.setPinCode(pinInput)
@@ -787,9 +877,8 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val target = showRestoreConfirm
+                        viewModel.importBackup(uri)
                         showRestoreConfirm = null
-                        target?.let { viewModel.importBackup(it) }
                     },
                 ) {
                     Text(stringResource(R.string.restore_action))
@@ -811,8 +900,8 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showClearConfirm = false
                         viewModel.clearAllData()
+                        showClearConfirm = false
                     },
                 ) {
                     Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
@@ -824,5 +913,63 @@ fun SettingsScreen(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun SettingsRowItem(
+    @DrawableRes iconRes: Int,
+    iconTint: Color,
+    title: String,
+    subtitle: String,
+    onClick: (() -> Unit)?,
+    titleColor: Color = MaterialTheme.colorScheme.onSurface,
+    trailing: (@Composable () -> Unit)? = {
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.outline,
+        )
+    },
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 13.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(iconTint.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = titleColor,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (trailing != null) {
+            Spacer(Modifier.width(8.dp))
+            trailing()
+        }
     }
 }

@@ -21,6 +21,7 @@ class EmergencyFundActionReceiver : BroadcastReceiver() {
 
         if (intent.action == ACTION_ADD_EMERGENCY) {
             val amount = intent.getLongExtra(EXTRA_AMOUNT, 0L)
+            val appNotificationId = intent.getLongExtra(EXTRA_APP_NOTIFICATION_ID, 0L)
             if (amount <= 0) return
 
             val app = context.applicationContext as? FinanceApp ?: return
@@ -30,6 +31,9 @@ class EmergencyFundActionReceiver : BroadcastReceiver() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     container.savingsRepository.addEmergencyFunds(amount)
+                    if (appNotificationId > 0L) {
+                        container.notificationRepository.markActionCompleted(appNotificationId)
+                    }
                     launch(Dispatchers.Main) {
                         Toast.makeText(
                             context,
@@ -47,6 +51,7 @@ class EmergencyFundActionReceiver : BroadcastReceiver() {
     companion object {
         const val ACTION_ADD_EMERGENCY = "com.example.myapplication.savings.ACTION_ADD_EMERGENCY"
         const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
+        const val EXTRA_APP_NOTIFICATION_ID = "extra_app_notification_id"
         const val EXTRA_AMOUNT = "extra_amount"
     }
 }

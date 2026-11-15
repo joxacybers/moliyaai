@@ -1,6 +1,7 @@
 package com.example.myapplication.sms
 
 import com.example.myapplication.data.model.Category
+import com.example.myapplication.data.model.CustomCategory
 import com.example.myapplication.data.model.TransactionType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -52,6 +53,35 @@ class SmsParserTest {
         assertEquals(85000L, parsed!!.amount)
         assertEquals("OXYMED APTEKA", parsed.merchant)
         assertEquals(Category.HEALTH, parsed.category)
+    }
+
+    @Test
+    fun parseSaleIncomeSms_extractsIncomeAndBusinessCategory() {
+        val sms = "Click: Kartaga 450 000 so'm tushdi. Sotuv: Online do'kon buyurtma. Balans: 2 100 000 so'm"
+        val parsed = SmsParser.parse("CLICK", sms)
+
+        assertNotNull(parsed)
+        assertEquals(450000L, parsed!!.amount)
+        assertEquals(TransactionType.INCOME, parsed.type)
+        assertEquals(Category.BUSINESS, parsed.category)
+    }
+
+    @Test
+    fun parseSmsWithCustomCategory_matchesCustomCategory() {
+        val customCats = listOf(
+            CustomCategory(
+                name = "Fitnes",
+                type = TransactionType.EXPENSE,
+                iconKey = "fitness",
+                colorHex = 0xFF0097A7,
+            ),
+        )
+        val sms = "HUMO: 300 000 UZS to'landi. Joy: BEFIT FITNES ZALI. Balans: 900 000 UZS"
+        val parsed = SmsParser.parse("HUMO", sms, customCats)
+
+        assertNotNull(parsed)
+        assertEquals(300000L, parsed!!.amount)
+        assertEquals("Fitnes", parsed.customCategoryName)
     }
 
     @Test

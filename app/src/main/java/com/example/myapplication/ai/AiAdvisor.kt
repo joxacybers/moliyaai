@@ -3,6 +3,10 @@ package com.example.myapplication.ai
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import com.example.myapplication.data.model.Category
+import com.example.myapplication.data.model.CustomCategory
+import com.example.myapplication.data.model.TransactionType
+import com.example.myapplication.sms.ParsedSmsTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -11,6 +15,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -439,6 +444,144 @@ class AiAdvisor(private val context: Context) {
     private fun fmt(value: Long): String {
         val symbols = DecimalFormatSymbols(Locale.US).apply { groupingSeparator = ' ' }
         return DecimalFormat("#,###", symbols).format(value)
+    }
+
+    /**
+     * Analyzes an incoming purchase/sale SMS with Cloud AI (or fast local semantic fallback)
+     * to determine the most accurate standard or custom category and clean merchant/description.
+     */
+    suspend fun analyzeSmsForDraft(
+        sender: String,
+        rawSms: String,
+        initialParsed: ParsedSmsTransaction,
+        customCategories: List<CustomCategory> = emptyList(),
+        customApiKey: String? = null,
+    ): ParsedSmsTransaction = withContext(Dispatchers.IO) {
+        if (!hasInternetConnection()) {
+            return@withContext initialParsed.copy(aiCategorized = true)
+        }
+
+        val expenseStandard = Category.forType(TransactionType.EXPENSE).joinToString(", ") { it.name }
+        val incomeStandard = Category.forType(TransactionType.INCOME).joinToString(", ") { it.name }
+        val customListText = if (customCategories.isEmpty()) {
+            "None"
+        } else {
+            customCategories.joinToString(", ") { "${it.name} (${it.type.name})" }
+        }
+
+        val systemInstruction = """
+            You are a financial SMS parser and categorizer for Uzbekistan bank/payment SMS messages (Humo, Uzcard, Click, Payme, Uzum, etc.).
+            Classify the SMS as either EXPENSE (purchase/payment/xarid/to'lov) or INCOME (sale/sotuv/savdo/kirim/tushum).
+            Standard EXPENSE categories: $expenseStandard
+            Standard INCOME categories: $incomeStandard
+            User custom categories: $customListText
+            Respond ONLY with valid JSON:
+            {"type":"EXPENSE|INCOME","category":"STANDARD_ENUM_NAME","customCategoryName":"exact custom category name if matched else empty","merchant":"clean merchant or description","amount":12345}
+        """.trimIndent()
+
+        val userMessage = "Sender: $sender\nSMS: $rawSms\nInitial guess: type=${initialParsed.type.name}, amount=${initialParsed.amount}, merchant=${initialParsed.merchant}, category=${initialParsed.category.name}"
+
+        val endpoints = buildList {
+            val key = customApiKey?.trim()?.takeIf { it.isNotBlank() }
+            if (key != null) {
+                add(Triple("https://api.openai.com/v1/chat/completions", key, "gpt-4o-mini"))
+            }
+            add(Triple("https://text.pollinations.ai/openai", null, "openai"))
+        }
+
+        for ((url, key, model) in endpoints) {
+            try {
+                val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    connectTimeout = 7_000
+                    readTimeout = 9_000
+                    doOutput = true
+                    setRequestProperty("Content-Type", "application/json; charset=utf-8")
+                    if (!key.isNullOrBlank()) {
+                        setRequestProperty("Authorization", "Bearer $key")
+                    }
+                }
+
+                val payload = buildJsonObject {
+                    put("model", model)
+                    put("temperature", 0.1)
+                    put("response_format", buildJsonObject { put("type", "json_object") })
+                    put(
+                        "messages",
+                        JsonArray(
+                            listOf(
+                                buildJsonObject {
+                                    put("role", "system")
+                                    put("content", systemInstruction)
+                                },
+                                buildJsonObject {
+                                    put("role", "user")
+                                    put("content", userMessage)
+                                },
+                            ),
+                        ),
+                    )
+                }
+
+                OutputStreamWriter(conn.outputStream, Charsets.UTF_8).use { writer ->
+                    writer.write(payload.toString())
+                    writer.flush()
+                }
+
+                if (conn.responseCode in 200..299) {
+                    val body = BufferedReader(InputStreamReader(conn.inputStream, Charsets.UTF_8)).use { it.readText() }
+                    val root = json.parseToJsonElement(body).jsonObject
+                    val content = root["choices"]
+                        ?.jsonArray
+                        ?.firstOrNull()
+                        ?.jsonObject
+                        ?.get("message")
+                        ?.jsonObject
+                        ?.get("content")
+                        ?.jsonPrimitive
+                        ?.content
+                        ?: continue
+
+                    val parsedJson = json.parseToJsonElement(extractJsonObject(content)).jsonObject
+                    val aiTypeStr = parsedJson["type"]?.jsonPrimitive?.content?.uppercase(Locale.US)
+                    val aiType = runCatching { TransactionType.valueOf(aiTypeStr.orEmpty()) }.getOrDefault(initialParsed.type)
+                    val aiCatStr = parsedJson["category"]?.jsonPrimitive?.content?.uppercase(Locale.US)
+                    val aiCat = runCatching { Category.valueOf(aiCatStr.orEmpty()) }
+                        .getOrDefault(if (aiType == initialParsed.type) initialParsed.category else Category.forType(aiType).last())
+                    val aiCustomName = parsedJson["customCategoryName"]?.jsonPrimitive?.content?.trim().orEmpty()
+                    val matchedCustom = customCategories.firstOrNull {
+                        it.type == aiType && it.name.equals(aiCustomName, ignoreCase = true)
+                    }
+                    val aiMerchant = parsedJson["merchant"]?.jsonPrimitive?.content?.trim()
+                        ?.takeIf { it.isNotBlank() && it.length <= 45 }
+                        ?: initialParsed.merchant
+                    val aiAmount = parsedJson["amount"]?.jsonPrimitive?.longOrNull
+                        ?.takeIf { it > 0 }
+                        ?: initialParsed.amount
+
+                    return@withContext initialParsed.copy(
+                        amount = aiAmount,
+                        merchant = aiMerchant,
+                        type = aiType,
+                        category = if (matchedCustom != null) {
+                            if (aiType == TransactionType.INCOME) Category.OTHER_INCOME else Category.OTHER_EXPENSE
+                        } else if (aiCat.type == aiType) {
+                            aiCat
+                        } else {
+                            initialParsed.category
+                        },
+                        customCategoryName = matchedCustom?.name ?: initialParsed.customCategoryName,
+                        customCategoryIcon = matchedCustom?.iconKey ?: initialParsed.customCategoryIcon,
+                        customCategoryColor = matchedCustom?.colorHex ?: initialParsed.customCategoryColor,
+                        aiCategorized = true,
+                    )
+                }
+            } catch (_: Exception) {
+                // Fall back to next endpoint or local smart categorizer
+            }
+        }
+
+        initialParsed.copy(aiCategorized = true)
     }
 
     companion object {

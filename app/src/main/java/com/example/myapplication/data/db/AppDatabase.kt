@@ -14,8 +14,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         BudgetEntity::class,
         DebtEntity::class,
         SavingsGoalEntity::class,
+        AppNotificationEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,6 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
     abstract fun debtDao(): DebtDao
     abstract fun savingsGoalDao(): SavingsGoalDao
+    abstract fun appNotificationDao(): AppNotificationDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -112,9 +114,36 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `app_notifications` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `type` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `message` TEXT NOT NULL,
+                        `createdAtEpochMillis` INTEGER NOT NULL,
+                        `isRead` INTEGER NOT NULL,
+                        `isActionCompleted` INTEGER NOT NULL,
+                        `draftAmount` INTEGER NOT NULL,
+                        `draftTransactionType` TEXT NOT NULL,
+                        `draftCategory` TEXT NOT NULL,
+                        `draftCustomCategoryName` TEXT NOT NULL,
+                        `draftCustomCategoryIcon` TEXT NOT NULL,
+                        `draftCustomCategoryColor` INTEGER NOT NULL,
+                        `draftAccount` TEXT NOT NULL,
+                        `draftMerchantOrNote` TEXT NOT NULL,
+                        `rawSmsText` TEXT NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+            }
+        }
+
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "finance.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
     }

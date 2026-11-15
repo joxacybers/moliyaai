@@ -65,12 +65,14 @@ import com.example.myapplication.ui.navigation.CategoryBudgetsRoute
 import com.example.myapplication.ui.navigation.DebtsRoute
 import com.example.myapplication.ui.navigation.HistoryTab
 import com.example.myapplication.ui.navigation.HomeTab
+import com.example.myapplication.ui.navigation.NotificationsRoute
 import com.example.myapplication.ui.navigation.SavingsRoute
 import com.example.myapplication.ui.navigation.SettingsRoute
 import com.example.myapplication.ui.navigation.StatsTab
 import com.example.myapplication.ui.navigation.SubscriptionsTab
 import com.example.myapplication.ui.navigation.rememberAppNavigator
 import com.example.myapplication.ui.navigation.toDecoratedEntries
+import com.example.myapplication.ui.notifications.NotificationsScreen
 import com.example.myapplication.ui.savings.SavingsGoalsScreen
 import com.example.myapplication.ui.settings.SettingsScreen
 import com.example.myapplication.ui.stats.StatsScreen
@@ -199,11 +201,17 @@ fun MainApp() {
             DashboardScreen(
                 onAddTransaction = { navigator.push(AddEditRoute()) },
                 onOpenAdvisor = { navigator.navigateToTab(AdvisorTab) },
+                onOpenNotifications = { navigator.push(NotificationsRoute) },
                 onOpenSettings = { navigator.push(SettingsRoute) },
                 onSeeAllHistory = { navigator.navigateToTab(HistoryTab) },
                 onOpenCategoryBudgets = { navigator.push(CategoryBudgetsRoute) },
                 onOpenDebts = { navigator.push(DebtsRoute) },
                 onOpenSavings = { navigator.push(SavingsRoute) },
+            )
+        }
+        entry<NotificationsRoute> {
+            NotificationsScreen(
+                onNavigateBack = { navigator.pop() },
             )
         }
         entry<CategoryBudgetsRoute> {
@@ -251,7 +259,8 @@ fun MainApp() {
     val isFullScreenRoute = navigator.currentRoute is AddEditRoute ||
         navigator.currentRoute is CategoryBudgetsRoute ||
         navigator.currentRoute is DebtsRoute ||
-        navigator.currentRoute is SavingsRoute
+        navigator.currentRoute is SavingsRoute ||
+        navigator.currentRoute is NotificationsRoute
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

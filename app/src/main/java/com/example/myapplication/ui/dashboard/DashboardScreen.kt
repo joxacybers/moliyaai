@@ -19,7 +19,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,6 +75,7 @@ import androidx.compose.ui.graphics.Color
 fun DashboardScreen(
     onAddTransaction: () -> Unit,
     onOpenAdvisor: () -> Unit,
+    onOpenNotifications: () -> Unit,
     onOpenSettings: () -> Unit,
     onSeeAllHistory: () -> Unit,
     onOpenCategoryBudgets: () -> Unit,
@@ -81,7 +85,11 @@ fun DashboardScreen(
 ) {
     val container = appContainer()
     val viewModel: DashboardViewModel = viewModel {
-        DashboardViewModel(container.transactionRepository, container.settingsRepository)
+        DashboardViewModel(
+            container.transactionRepository,
+            container.settingsRepository,
+            container.notificationRepository,
+        )
     }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedTransaction by remember { mutableStateOf<TransactionEntity?>(null) }
@@ -92,6 +100,25 @@ fun DashboardScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold) },
                 actions = {
+                    val badgeCount = maxOf(state.unreadNotificationsCount, state.pendingSmsDraftsCount)
+                    IconButton(onClick = onOpenNotifications) {
+                        BadgedBox(
+                            badge = {
+                                if (badgeCount > 0) {
+                                    Badge {
+                                        Text(
+                                            text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                                        )
+                                    }
+                                }
+                            },
+                        ) {
+                            Icon(
+                                Icons.Default.Notifications,
+                                contentDescription = "Bildirishnomalar",
+                            )
+                        }
+                    }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.action_settings))
                     }
@@ -111,6 +138,56 @@ fun DashboardScreen(
             contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            if (state.pendingSmsDraftsCount > 0) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onOpenNotifications),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        ),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    Icons.Default.Notifications,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "${state.pendingSmsDraftsCount} ta SMS qoralama tasdiqlash kutilmoqda",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                                Text(
+                                    text = "AI toifaga ajratdi — koʻrish va amallarga qoʻshish uchun bosing",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             item {
                 BalanceCard(
                     balance = state.balance,
