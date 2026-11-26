@@ -1,20 +1,21 @@
 package com.example.myapplication.ui.addedit
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -44,14 +45,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,6 +66,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
 import com.example.myapplication.data.model.Account
 import com.example.myapplication.data.model.Category
+import com.example.myapplication.data.model.CustomCategory
 import com.example.myapplication.data.model.TransactionType
 import com.example.myapplication.ui.common.AddCustomCategoryDialog
 import com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation
@@ -74,11 +76,12 @@ import com.example.myapplication.ui.common.formatDate
 import com.example.myapplication.ui.common.iconRes
 import com.example.myapplication.ui.common.labelRes
 import com.example.myapplication.ui.common.tintColor
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddEditScreen(
     transactionId: Long,
@@ -88,7 +91,9 @@ fun AddEditScreen(
     val container = appContainer()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
     val noteFocusRequester = remember { FocusRequester() }
+    val noteBringIntoViewRequester = remember { BringIntoViewRequester() }
 
     val viewModel: AddEditViewModel = viewModel(key = "add_edit_$transactionId") {
         AddEditViewModel(
@@ -105,17 +110,9 @@ fun AddEditScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
-    var isNoteFocused by remember { mutableStateOf(false) }
-    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { onNavigateBack() }
-    }
-
-    LaunchedEffect(isNoteFocused, imeBottom, scrollState.maxValue, state.note) {
-        if (isNoteFocused && imeBottom > 0) {
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
     }
 
     Scaffold(
@@ -153,258 +150,62 @@ fun AddEditScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Type toggle (Expense / Income)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                FilterChip(
-                    selected = state.type == TransactionType.EXPENSE,
-                    onClick = { viewModel.setType(TransactionType.EXPENSE) },
-                    label = {
-                        Text(
-                            stringResource(R.string.expense),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            fontWeight = if (state.type == TransactionType.EXPENSE) FontWeight.Bold else FontWeight.Normal,
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                FilterChip(
-                    selected = state.type == TransactionType.INCOME,
-                    onClick = { viewModel.setType(TransactionType.INCOME) },
-                    label = {
-                        Text(
-                            stringResource(R.string.income),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            fontWeight = if (state.type == TransactionType.INCOME) FontWeight.Bold else FontWeight.Normal,
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-
-            // Amount field with ImeAction.Next -> moves to selection / next input
-            OutlinedTextField(
-                value = state.amountText,
-                onValueChange = viewModel::setAmount,
-                label = { Text(stringResource(R.string.amount)) },
-                suffix = { Text(stringResource(R.string.currency_suffix)) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next,
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        if (state.account == null) {
-                            viewModel.setAccount(Account.CARD)
-                        }
-                        noteFocusRequester.requestFocus()
-                    },
-                ),
-                visualTransformation = ThousandsSeparatorVisualTransformation(),
-                isError = state.amountError,
-                supportingText = if (state.amountError) {
-                    { Text(stringResource(R.string.amount_error)) }
-                } else null,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+            TypeSelectorRow(
+                selectedType = state.type,
+                onSelectType = viewModel::setType,
             )
 
-            // Account selector (MANDATORY: Card, Cash, Debt)
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = "${stringResource(R.string.account)} *",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (state.accountError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Account.entries.forEach { acc ->
-                        val isSelected = state.account == acc
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { viewModel.setAccount(acc) },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(acc.iconRes),
-                                    contentDescription = null,
-                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else acc.tintColor,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(acc.labelRes),
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                )
-                            },
-                            colors = if (state.accountError) {
-                                FilterChipDefaults.filterChipColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-                                )
-                            } else {
-                                FilterChipDefaults.filterChipColors()
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
+            // Isolated amount input: typing digits only recomposes this composable, never the categories/chips below
+            AmountInputField(
+                amountProvider = { viewModel.amountText },
+                isError = state.amountError,
+                onAmountChange = viewModel::setAmount,
+                onNext = {
+                    if (state.account == null) {
+                        viewModel.setAccount(Account.CARD)
                     }
-                }
-                if (state.accountError) {
-                    Text(
-                        text = stringResource(R.string.account_error),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(start = 4.dp),
-                    )
-                }
-            }
+                    noteFocusRequester.requestFocus()
+                },
+            )
 
-            // Category selector (standard categories + user custom categories + "+ Yangi toifa")
-            Text(stringResource(R.string.category), style = MaterialTheme.typography.labelLarge)
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Category.forType(state.type).forEach { cat ->
-                    val isCatSelected = state.selectedCustomCategory == null && state.category == cat
-                    FilterChip(
-                        selected = isCatSelected,
-                        onClick = { viewModel.setCategory(cat) },
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(cat.iconRes),
-                                contentDescription = null,
-                                tint = if (isCatSelected) MaterialTheme.colorScheme.primary else cat.tintColor,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        },
-                        label = { Text(stringResource(cat.labelRes)) },
-                    )
-                }
+            AccountSelectorSection(
+                selectedAccount = state.account,
+                accountError = state.accountError,
+                onSelectAccount = viewModel::setAccount,
+            )
 
-                // Custom categories for this transaction type
-                state.customCategories
-                    .filter { it.type == state.type }
-                    .forEach { customCat ->
-                        val isCustomSelected = state.selectedCustomCategory?.name.equals(customCat.name, ignoreCase = true)
-                        FilterChip(
-                            selected = isCustomSelected,
-                            onClick = { viewModel.selectCustomCategory(customCat) },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(customCategoryIconRes(customCat.iconKey)),
-                                    contentDescription = null,
-                                    tint = if (isCustomSelected) MaterialTheme.colorScheme.primary else Color(customCat.colorHex),
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = customCat.name,
-                                    fontWeight = if (isCustomSelected) FontWeight.Bold else FontWeight.Normal,
-                                )
-                            },
-                        )
+            CategorySelectorSection(
+                type = state.type,
+                selectedCategory = state.category,
+                selectedCustomCategory = state.selectedCustomCategory,
+                customCategories = state.customCategories,
+                onSelectCategory = viewModel::setCategory,
+                onSelectCustomCategory = viewModel::selectCustomCategory,
+                onAddCustomCategoryClick = { showAddCategoryDialog = true },
+            )
+
+            DateSelectorSection(
+                selectedDate = state.date,
+                onSelectDate = viewModel::setDate,
+                onOpenDatePicker = { showDatePicker = true },
+            )
+
+            // Isolated note input: typing characters only recomposes this composable
+            NoteInputField(
+                noteProvider = { viewModel.noteText },
+                onNoteChange = viewModel::setNote,
+                onDone = { focusManager.clearFocus() },
+                focusRequester = noteFocusRequester,
+                bringIntoViewRequester = noteBringIntoViewRequester,
+                onFocused = {
+                    scope.launch {
+                        noteBringIntoViewRequester.bringIntoView()
                     }
-
-                // Manual "+ Yangi toifa" chip
-                FilterChip(
-                    selected = false,
-                    onClick = { showAddCategoryDialog = true },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = "Yangi toifa",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    },
-                )
-            }
-
-            // Date picker section with quick chips
-            Text(stringResource(R.string.date), style = MaterialTheme.typography.labelLarge)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                val today = LocalDate.now()
-                val isToday = state.date == today
-                val isYesterday = state.date == today.minusDays(1)
-                val isOther = !isToday && !isYesterday
-
-                FilterChip(
-                    selected = isToday,
-                    onClick = { viewModel.setDate(today) },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.today),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                FilterChip(
-                    selected = isYesterday,
-                    onClick = { viewModel.setDate(today.minusDays(1)) },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.yesterday),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            fontWeight = if (isYesterday) FontWeight.Bold else FontWeight.Normal,
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                FilterChip(
-                    selected = isOther,
-                    onClick = { showDatePicker = true },
-                    label = {
-                        Text(
-                            text = if (isOther) formatDate(state.date) else stringResource(R.string.custom_date),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            fontWeight = if (isOther) FontWeight.Bold else FontWeight.Normal,
-                        )
-                    },
-                    modifier = Modifier.weight(1.2f),
-                )
-            }
-
-            // Optional note
-            OutlinedTextField(
-                value = state.note,
-                onValueChange = viewModel::setNote,
-                label = { Text(stringResource(R.string.note_optional)) },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() },
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(noteFocusRequester)
-                    .onFocusChanged { isNoteFocused = it.isFocused },
-                singleLine = true,
+                },
             )
 
             Spacer(Modifier.height(8.dp))
 
-            // Save button
             Button(
                 onClick = viewModel::save,
                 modifier = Modifier.fillMaxWidth(),
@@ -480,4 +281,307 @@ fun AddEditScreen(
             },
         )
     }
+}
+
+@Composable
+private fun TypeSelectorRow(
+    selectedType: TransactionType,
+    onSelectType: (TransactionType) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FilterChip(
+            selected = selectedType == TransactionType.EXPENSE,
+            onClick = { onSelectType(TransactionType.EXPENSE) },
+            label = {
+                Text(
+                    stringResource(R.string.expense),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontWeight = if (selectedType == TransactionType.EXPENSE) FontWeight.Bold else FontWeight.Normal,
+                )
+            },
+            modifier = Modifier.weight(1f),
+        )
+        FilterChip(
+            selected = selectedType == TransactionType.INCOME,
+            onClick = { onSelectType(TransactionType.INCOME) },
+            label = {
+                Text(
+                    stringResource(R.string.income),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontWeight = if (selectedType == TransactionType.INCOME) FontWeight.Bold else FontWeight.Normal,
+                )
+            },
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun AmountInputField(
+    amountProvider: () -> String,
+    isError: Boolean,
+    onAmountChange: (String) -> Unit,
+    onNext: () -> Unit,
+) {
+    val visualTransformation = remember { ThousandsSeparatorVisualTransformation() }
+    val keyboardOptions = remember {
+        KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Next,
+        )
+    }
+    val keyboardActions = remember(onNext) {
+        KeyboardActions(onNext = { onNext() })
+    }
+
+    OutlinedTextField(
+        value = amountProvider(),
+        onValueChange = onAmountChange,
+        label = { Text(stringResource(R.string.amount)) },
+        suffix = { Text(stringResource(R.string.currency_suffix)) },
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        visualTransformation = visualTransformation,
+        isError = isError,
+        supportingText = if (isError) {
+            { Text(stringResource(R.string.amount_error)) }
+        } else null,
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+    )
+}
+
+@Composable
+private fun AccountSelectorSection(
+    selectedAccount: Account?,
+    accountError: Boolean,
+    onSelectAccount: (Account) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = "${stringResource(R.string.account)} *",
+            style = MaterialTheme.typography.labelLarge,
+            color = if (accountError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Account.entries.forEach { acc ->
+                val isSelected = selectedAccount == acc
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onSelectAccount(acc) },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(acc.iconRes),
+                            contentDescription = null,
+                            tint = if (isSelected) MaterialTheme.colorScheme.primary else acc.tintColor,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = stringResource(acc.labelRes),
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        )
+                    },
+                    colors = if (accountError) {
+                        FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                        )
+                    } else {
+                        FilterChipDefaults.filterChipColors()
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        if (accountError) {
+            Text(
+                text = stringResource(R.string.account_error),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 4.dp),
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CategorySelectorSection(
+    type: TransactionType,
+    selectedCategory: Category,
+    selectedCustomCategory: CustomCategory?,
+    customCategories: List<CustomCategory>,
+    onSelectCategory: (Category) -> Unit,
+    onSelectCustomCategory: (CustomCategory) -> Unit,
+    onAddCustomCategoryClick: () -> Unit,
+) {
+    val standardCategories = remember(type) { Category.forType(type) }
+    val filteredCustomCategories = remember(type, customCategories) {
+        customCategories.filter { it.type == type }
+    }
+
+    Text(stringResource(R.string.category), style = MaterialTheme.typography.labelLarge)
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        standardCategories.forEach { cat ->
+            val isCatSelected = selectedCustomCategory == null && selectedCategory == cat
+            FilterChip(
+                selected = isCatSelected,
+                onClick = { onSelectCategory(cat) },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(cat.iconRes),
+                        contentDescription = null,
+                        tint = if (isCatSelected) MaterialTheme.colorScheme.primary else cat.tintColor,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+                label = { Text(stringResource(cat.labelRes)) },
+            )
+        }
+
+        filteredCustomCategories.forEach { customCat ->
+            val isCustomSelected = selectedCustomCategory?.name.equals(customCat.name, ignoreCase = true)
+            FilterChip(
+                selected = isCustomSelected,
+                onClick = { onSelectCustomCategory(customCat) },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(customCategoryIconRes(customCat.iconKey)),
+                        contentDescription = null,
+                        tint = if (isCustomSelected) MaterialTheme.colorScheme.primary else Color(customCat.colorHex),
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+                label = {
+                    Text(
+                        text = customCat.name,
+                        fontWeight = if (isCustomSelected) FontWeight.Bold else FontWeight.Normal,
+                    )
+                },
+            )
+        }
+
+        FilterChip(
+            selected = false,
+            onClick = onAddCustomCategoryClick,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            label = {
+                Text(
+                    text = "Yangi toifa",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+private fun DateSelectorSection(
+    selectedDate: LocalDate,
+    onSelectDate: (LocalDate) -> Unit,
+    onOpenDatePicker: () -> Unit,
+) {
+    val today = remember { LocalDate.now() }
+    val yesterday = remember(today) { today.minusDays(1) }
+    val isToday = selectedDate == today
+    val isYesterday = selectedDate == yesterday
+    val isOther = !isToday && !isYesterday
+
+    Text(stringResource(R.string.date), style = MaterialTheme.typography.labelLarge)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FilterChip(
+            selected = isToday,
+            onClick = { onSelectDate(today) },
+            label = {
+                Text(
+                    text = stringResource(R.string.today),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                )
+            },
+            modifier = Modifier.weight(1f),
+        )
+        FilterChip(
+            selected = isYesterday,
+            onClick = { onSelectDate(yesterday) },
+            label = {
+                Text(
+                    text = stringResource(R.string.yesterday),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontWeight = if (isYesterday) FontWeight.Bold else FontWeight.Normal,
+                )
+            },
+            modifier = Modifier.weight(1f),
+        )
+        FilterChip(
+            selected = isOther,
+            onClick = onOpenDatePicker,
+            label = {
+                Text(
+                    text = if (isOther) formatDate(selectedDate) else stringResource(R.string.custom_date),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontWeight = if (isOther) FontWeight.Bold else FontWeight.Normal,
+                )
+            },
+            modifier = Modifier.weight(1.2f),
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun NoteInputField(
+    noteProvider: () -> String,
+    onNoteChange: (String) -> Unit,
+    onDone: () -> Unit,
+    focusRequester: FocusRequester,
+    bringIntoViewRequester: BringIntoViewRequester,
+    onFocused: () -> Unit,
+) {
+    val keyboardOptions = remember { KeyboardOptions(imeAction = ImeAction.Done) }
+    val keyboardActions = remember(onDone) { KeyboardActions(onDone = { onDone() }) }
+
+    OutlinedTextField(
+        value = noteProvider(),
+        onValueChange = onNoteChange,
+        label = { Text(stringResource(R.string.note_optional)) },
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        modifier = Modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .focusRequester(focusRequester)
+            .onFocusEvent { focusState ->
+                if (focusState.isFocused) {
+                    onFocused()
+                }
+            },
+        singleLine = true,
+    )
 }

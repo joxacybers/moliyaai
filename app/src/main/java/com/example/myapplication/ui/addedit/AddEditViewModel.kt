@@ -1,6 +1,9 @@
 package com.example.myapplication.ui.addedit
 
 import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.BudgetRepository
@@ -25,14 +28,12 @@ import java.time.LocalDate
 
 data class AddEditUiState(
     val id: Long = 0,
-    val amountText: String = "",
     val type: TransactionType = TransactionType.EXPENSE,
     val category: Category = Category.FOOD,
     val selectedCustomCategory: CustomCategory? = null,
     val customCategories: List<CustomCategory> = emptyList(),
     val account: Account? = null,
     val date: LocalDate = LocalDate.now(),
-    val note: String = "",
     val amountError: Boolean = false,
     val accountError: Boolean = false,
     val isEditing: Boolean = false,
@@ -49,6 +50,16 @@ class AddEditViewModel(
 
     private val _uiState = MutableStateFlow(AddEditUiState(id = transactionId, isEditing = transactionId > 0))
     val uiState = _uiState.asStateFlow()
+
+    /**
+     * Kept as Compose Snapshot state (instead of StateFlow) so text input updates synchronously
+     * within the current frame without async flow dispatch latency or whole-screen recompositions.
+     */
+    var amountText by mutableStateOf("")
+        private set
+
+    var noteText by mutableStateOf("")
+        private set
 
     private val _events = MutableSharedFlow<Unit>()
     val events = _events.asSharedFlow()
@@ -71,15 +82,15 @@ class AddEditViewModel(
                         )
                     } else null
 
+                    amountText = t.amount.toString()
+                    noteText = t.note
                     _uiState.value = _uiState.value.copy(
                         id = t.id,
-                        amountText = t.amount.toString(),
                         type = t.type,
                         category = t.category,
                         selectedCustomCategory = customCat,
                         account = t.account,
                         date = t.date,
-                        note = t.note,
                         isEditing = true,
                     )
                 }
@@ -89,7 +100,12 @@ class AddEditViewModel(
 
     fun setAmount(text: String) {
         val digitsOnly = text.filter { it.isDigit() }
-        _uiState.value = _uiState.value.copy(amountText = digitsOnly, amountError = false)
+        if (digitsOnly != amountText) {
+            amountText = digitsOnly
+        }
+        if (_uiState.value.amountError) {
+            _uiState.value = _uiState.value.copy(amountError = false)
+        }
     }
 
     fun setType(type: TransactionType) {
@@ -139,11 +155,13 @@ class AddEditViewModel(
     }
 
     fun setNote(note: String) {
-        _uiState.value = _uiState.value.copy(note = note)
+        if (note != noteText) {
+            noteText = note
+        }
     }
 
     fun save() {
-        val amount = _uiState.value.amountText.toLongOrNull() ?: 0L
+        val amount = amountText.toLongOrNull() ?: 0L
         val account = _uiState.value.account
 
         var hasError = false
@@ -165,7 +183,7 @@ class AddEditViewModel(
             category = _uiState.value.category,
             account = account!!,
             epochDay = _uiState.value.date.toEpochDay(),
-            note = _uiState.value.note.trim(),
+            note = noteText.trim(),
             customCategoryName = customCat?.name.orEmpty(),
             customCategoryIcon = customCat?.iconKey.orEmpty(),
             customCategoryColor = customCat?.colorHex ?: 0L,

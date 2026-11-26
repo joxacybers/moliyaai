@@ -87,6 +87,8 @@ import com.example.myapplication.data.db.DebtType
 import com.example.myapplication.ui.common.EmptyState
 import com.example.myapplication.ui.common.ThousandsSeparatorVisualTransformation
 import com.example.myapplication.ui.common.appContainer
+import com.example.myapplication.ui.common.calculateDaysBetween
+import com.example.myapplication.ui.common.formatDateTime
 import com.example.myapplication.ui.common.formatDayMonth
 import com.example.myapplication.ui.common.money
 import java.time.Instant
@@ -249,7 +251,11 @@ fun DebtsScreen(
                     contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(currentList, key = { it.id }) { debt ->
+                    items(
+                        items = currentList,
+                        key = { it.id },
+                        contentType = { "debt_card" },
+                    ) { debt ->
                         DebtCard(
                             debt = debt,
                             onRecordPayment = {
@@ -510,30 +516,134 @@ private fun DebtCard(
                 )
             }
 
-            // Due Date & Note
-            if (debt.dueDateEpochMillis != null || debt.note.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
+            // Created Date, Settled Date/Time, Duration Days & Due Date
+            Spacer(Modifier.height(10.dp))
+            val createdText = remember(debt.createdAtEpochMillis) {
+                formatDateTime(debt.createdAtEpochMillis)
+            }
+            val settledAt = debt.settledAtEpochMillis
+            val settledText = remember(settledAt) {
+                settledAt?.let { formatDateTime(it) }
+            }
+            val durationDays = remember(debt.createdAtEpochMillis, settledAt, debt.isSettled) {
+                if (debt.isSettled && settledAt != null) {
+                    calculateDaysBetween(debt.createdAtEpochMillis, settledAt)
+                } else {
+                    calculateDaysBetween(debt.createdAtEpochMillis, System.currentTimeMillis())
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.65f))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (debt.dueDateEpochMillis != null) {
-                        val dueLocalDate = Instant.ofEpochMilli(debt.dueDateEpochMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                    Text(
+                        text = "Yozilgan sana:",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = createdText,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+
+                if (debt.isSettled && settledText != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
-                            text = if (isOverdue) "Muddat ötdi: ${formatDayMonth(dueLocalDate)}" else "Muddat: ${formatDayMonth(dueLocalDate)}",
-                            style = MaterialTheme.typography.bodySmall,
+                            text = if (isLent) "Qaytarib olingan:" else "Tölangan sana:",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF2E7D32),
+                        )
+                        Text(
+                            text = settledText,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF2E7D32),
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "Oraliq muddat:",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = if (durationDays == 0L) "0 kun (şu kuni)" else "$durationDays kun",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                } else if (!debt.isSettled) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "Ötgan muddat:",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = if (durationDays == 0L) "Bugun yozilgan" else "$durationDays kun",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+
+                if (debt.dueDateEpochMillis != null) {
+                    val dueLocalDate = remember(debt.dueDateEpochMillis) {
+                        Instant.ofEpochMilli(debt.dueDateEpochMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = if (isOverdue) "Muddat ötdi:" else "Qaytariş muddati:",
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = if (isOverdue) FontWeight.Bold else FontWeight.Normal,
                             color = if (isOverdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
-                    if (debt.note.isNotEmpty()) {
                         Text(
-                            text = debt.note,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = formatDayMonth(dueLocalDate),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isOverdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                         )
                     }
+                }
+
+                if (debt.note.isNotEmpty()) {
+                    Text(
+                        text = "Izoh: ${debt.note}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
 

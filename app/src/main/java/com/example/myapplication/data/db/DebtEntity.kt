@@ -24,6 +24,7 @@ data class DebtEntity(
     val dueDateEpochMillis: Long? = null,
     val note: String = "",
     val isSettled: Boolean = false,
+    val settledAtEpochMillis: Long? = null,
 ) {
     val remainingAmount: Long
         get() = (amount - paidAmount).coerceAtLeast(0)

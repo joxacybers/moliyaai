@@ -10,15 +10,21 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.myapplication.R
 import com.example.myapplication.data.model.TransactionType
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
 import androidx.compose.ui.text.intl.Locale as ComposeLocale
+
+private val DAY_MONTH_FORMATTER = DateTimeFormatter.ofPattern("dd.MM")
+private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm")
 
 /** 1250000 -> "1 250 000" (non-breaking spaces). */
 fun formatAmount(amount: Long): String =
@@ -61,7 +67,22 @@ fun formatDate(date: LocalDate): String =
 fun formatShortMonth(date: LocalDate): String =
     date.month.getDisplayName(TextStyle.SHORT_STANDALONE, currentLocale())
 
-fun formatDayMonth(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("dd.MM"))
+fun formatDayMonth(date: LocalDate): String = date.format(DAY_MONTH_FORMATTER)
+
+/** Formats epoch millis as "dd.MM.yyyy, HH:mm" in the device's local time zone. */
+fun formatDateTime(epochMillis: Long, zoneId: ZoneId = ZoneId.systemDefault()): String =
+    Instant.ofEpochMilli(epochMillis).atZone(zoneId).format(DATE_TIME_FORMATTER)
+
+/** Calculates non-negative calendar days between two timestamps in the given time zone. */
+fun calculateDaysBetween(
+    startEpochMillis: Long,
+    endEpochMillis: Long,
+    zoneId: ZoneId = ZoneId.systemDefault(),
+): Long {
+    val startDate = Instant.ofEpochMilli(startEpochMillis).atZone(zoneId).toLocalDate()
+    val endDate = Instant.ofEpochMilli(endEpochMillis).atZone(zoneId).toLocalDate()
+    return ChronoUnit.DAYS.between(startDate, endDate).coerceAtLeast(0L)
+}
 
 @Composable
 @ReadOnlyComposable
@@ -88,7 +109,7 @@ fun formatRelativeDay(date: LocalDate): String {
  * Automatically groups digits into groups of 3 separated by spaces
  * (e.g. "1250000" visually displays as "1 250 000") without altering the raw numeric value.
  */
-class ThousandsSeparatorVisualTransformation(
+data class ThousandsSeparatorVisualTransformation(
     private val delimiter: Char = ' ',
 ) : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
